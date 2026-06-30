@@ -9,10 +9,10 @@ BRAND_AI = "GreenGuard Pay AI"
 
 # 데이터 연동 필요: 실제 사용자/요금/고지서 데이터는 추후 백엔드와 연결합니다.
 PROFILE_FIELDS = [
-    {"label": "이름", "value": "김그린"},
-    {"label": "전화번호", "value": "010-1234-5678"},
-    {"label": "이메일", "value": "greenguard@example.com"},
-    {"label": "주소", "value": "서울시 중구 청계천로 100"},
+    {"label": "이름", "key": "name", "default": "김그린"},
+    {"label": "전화번호", "key": "phone", "default": "010-1234-5678"},
+    {"label": "이메일", "key": "email", "default": "greenguard@example.com"},
+    {"label": "주소", "key": "address", "default": "서울시 중구 청계천로 100"},
 ]
 
 FEATURE_SUGGESTIONS = [
@@ -278,36 +278,6 @@ div[data-testid="stNumberInput"] input {
   margin: 0;
   color: #475569;
   font-size: 18px;
-}
-
-.chat-shell {
-  width: min(860px, 100%);
-  margin: 28px auto 0;
-}
-
-.chat-form-card {
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  padding: 12px 14px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
-}
-
-.chat-form-card [data-testid="stHorizontalBlock"] {
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.chat-form-card [data-testid="stTextInput"] input {
-  min-height: 50px;
-  border: 0;
-  background: transparent;
-  font-size: 16px;
-}
-
-.chat-form-card .stFormSubmitButton > button {
-  min-height: 50px !important;
-  border-radius: 16px !important;
 }
 
 .user-bubble-wrap {
@@ -656,6 +626,22 @@ div[data-testid="stNumberInput"] input {
   height: 54px;
 }
 
+.bill-action-offset {
+  display: none;
+}
+
+.element-container:has(.bill-action-offset) {
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.element-container:has(.bill-action-offset) + .element-container {
+  margin-top: clamp(112px, 13vh, 152px) !important;
+}
+
 div[data-testid="stDialog"] div[role="dialog"] {
   border: 1px solid rgba(159, 195, 247, 0.28);
   border-radius: 14px;
@@ -719,6 +705,7 @@ div[data-testid="stDialog"] .stFormSubmitButton > button {
     linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
     rgba(15, 23, 42, 0.4);
   padding: 11px 12px;
+  margin-bottom: 10px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -752,6 +739,10 @@ div[data-testid="stDialog"] .stFormSubmitButton > button {
   .graph-header {
     flex-direction: column;
   }
+
+  .element-container:has(.bill-action-offset) + .element-container {
+    margin-top: clamp(64px, 10vh, 96px) !important;
+  }
 }
 </style>
 """
@@ -769,13 +760,28 @@ def init_state() -> None:
         "open_info_dialog": False,
         "open_feature_dialog": False,
     }
+    for field in PROFILE_FIELDS:
+        defaults[field["key"]] = field["default"]
+
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
 
+    if "profile_fields_initialized" not in st.session_state:
+        for field in PROFILE_FIELDS:
+            current_value = str(st.session_state.get(field["key"], "")).strip()
+            if not current_value:
+                st.session_state[field["key"]] = field["default"]
+        st.session_state.profile_fields_initialized = True
+
 
 def safe_html(value: object) -> str:
     return escape(str(value))
+
+
+def profile_value(key: str) -> str:
+    value = str(st.session_state.get(key, "")).strip()
+    return value if value else "(데이터 연동 필요)"
 
 
 def mask_sensitive_value(value: str, strength: int) -> str:
@@ -887,25 +893,25 @@ def render_risk_card() -> None:
 
 
 def render_chat_input() -> None:
-    st.markdown('<div class="chat-shell"><div class="chat-form-card">', unsafe_allow_html=True)
-    with st.form("chat_form", clear_on_submit=True):
-        input_col, send_col = st.columns([8, 1.2], vertical_alignment="bottom")
-        with input_col:
-            prompt = st.text_input(
-                "질문 입력",
-                placeholder="이번 달 자동이체 중 이상한 거 있어?",
-                label_visibility="collapsed",
-            )
-        with send_col:
-            submitted = st.form_submit_button("전송", width="stretch")
+    _, chat_col, _ = st.columns([0.75, 5.6, 0.75], gap="small")
+    with chat_col:
+        with st.form("chat_form", clear_on_submit=True):
+            input_col, send_col = st.columns([8, 1.2], vertical_alignment="bottom")
+            with input_col:
+                prompt = st.text_input(
+                    "질문 입력",
+                    placeholder="이번 달 자동이체 중 이상한 거 있어?",
+                    label_visibility="collapsed",
+                )
+            with send_col:
+                submitted = st.form_submit_button("전송", width="stretch")
 
-        if submitted and prompt.strip():
-            # 데이터 연동 필요: 추후 분석 API와 연결할 위치입니다.
-            st.session_state.submitted_prompt = prompt.strip()
-            st.session_state.show_risk_result = True
-            st.session_state.current_view = "chat"
-            st.rerun()
-    st.markdown("</div></div>", unsafe_allow_html=True)
+            if submitted and prompt.strip():
+                # 데이터 연동 필요: 추후 분석 API와 연결할 위치입니다.
+                st.session_state.submitted_prompt = prompt.strip()
+                st.session_state.show_risk_result = True
+                st.session_state.current_view = "chat"
+                st.rerun()
 
 
 def render_chat_home() -> None:
@@ -942,18 +948,22 @@ def render_chat_home() -> None:
 
 
 def render_profile_header() -> None:
+    profile_name = profile_value("name")
+    profile_title = f"{profile_name} 님" if not profile_name.startswith("(") else "닉네임 님"
+
     st.markdown(
-        """
+        f"""
         <section class="profile-header-card">
           <div class="profile-identity">
             <span class="large-avatar">G</span>
             <div>
               <p class="eyebrow">내 프로필</p>
-              <h1 class="profile-title">닉네임 님</h1>
+              <h1 class="profile-title">{safe_html(profile_title)}</h1>
               <dl class="profile-meta">
-                <div class="meta-box"><dt>이름</dt><dd>(데이터 연동 필요)</dd></div>
-                <div class="meta-box"><dt>전화번호</dt><dd>(데이터 연동 필요)</dd></div>
-                <div class="meta-box"><dt>이메일</dt><dd>(데이터 연동 필요)</dd></div>
+                <div class="meta-box"><dt>이름</dt><dd>{safe_html(profile_name)}</dd></div>
+                <div class="meta-box"><dt>전화번호</dt><dd>{safe_html(profile_value("phone"))}</dd></div>
+                <div class="meta-box"><dt>이메일</dt><dd>{safe_html(profile_value("email"))}</dd></div>
+                <div class="meta-box"><dt>주소</dt><dd>{safe_html(profile_value("address"))}</dd></div>
               </dl>
             </div>
           </div>
@@ -1038,6 +1048,7 @@ def render_profile_page() -> None:
     left_col, right_col = st.columns([1.05, 2.85], gap="large")
 
     with left_col:
+        st.markdown('<span class="bill-action-offset" aria-hidden="true"></span>', unsafe_allow_html=True)
         for category in ["수도요금", "전기요금", "가스요금"]:
             category_type = "primary" if st.session_state.selected_category == category else "secondary"
             if st.button(category, key=f"category_{category}", type=category_type, width="stretch"):
@@ -1132,30 +1143,30 @@ def render_info_dialog_body() -> None:
     )
 
     # 데이터 연동 필요: 실제 개인정보 조회/저장 API 연결 예정
-    preview_cards = []
-    for field in PROFILE_FIELDS:
-        masked_value = mask_sensitive_value(field["value"], st.session_state.mask_strength)
-        preview_cards.append(
-            f"""
-            <div class="mask-preview">
-              <span>{safe_html(field["label"])}</span>
-              <strong>{safe_html(masked_value)}</strong>
-            </div>
-            """
-        )
-    st.markdown(f'<div class="mask-preview-grid">{"".join(preview_cards)}</div>', unsafe_allow_html=True)
+    preview_cols = st.columns(2, gap="small")
+    for index, field in enumerate(PROFILE_FIELDS):
+        current_value = profile_value(field["key"])
+        masked_value = mask_sensitive_value(current_value, st.session_state.mask_strength)
+        with preview_cols[index % 2]:
+            st.markdown(
+                f"""
+                <div class="mask-preview">
+                  <span>{safe_html(field["label"])}</span>
+                  <strong>{safe_html(masked_value)}</strong>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     for field in PROFILE_FIELDS:
-        masked_value = mask_sensitive_value(field["value"], st.session_state.mask_strength)
         st.text_input(
             field["label"],
-            value=masked_value,
-            disabled=True,
-            key=f"masked_{field['label']}_{st.session_state.mask_strength}",
+            key=field["key"],
         )
 
     st.caption("(데이터 연동 필요)")
     if st.button("확인", key="close_info_dialog", width="stretch"):
+        # 데이터 연동 필요: 현재는 세션 상태에만 저장하고 추후 DB 저장 API와 연결합니다.
         close_dialogs()
         st.rerun()
 
