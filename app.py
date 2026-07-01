@@ -106,7 +106,7 @@ html, body,
 
 [data-testid="stAppViewContainer"] > .main > .block-container {
   max-width: 1160px;
-  padding: 2.45rem 2.2rem 5.5rem;
+  padding: 2.45rem 2.2rem 12.5rem;
 }
 
 #MainMenu, footer { visibility: hidden; }
@@ -321,15 +321,149 @@ button[kind="primary"]:hover {
   display: none !important;
 }
 
-.chat-input-shell {
-  max-width: 760px;
-  margin: 30px auto 0;
-  padding-top: 20px;
+/* 채팅 하단 고정 바 */
+html, body,
+[data-testid="stAppViewContainer"] {
+  overflow-x: hidden !important;
+}
+
+.st-key-chat_input_bar {
+  position: fixed !important;
+  bottom: 28px !important;
+  left: calc(280px + (100vw - 280px - min(1480px, calc(100vw - 360px))) / 2) !important;
+  width: min(1480px, calc(100vw - 360px)) !important;
+  max-width: min(1480px, calc(100vw - 360px)) !important;
+  z-index: 850 !important;
+  background: #FFFFFF !important;
+  border: 1px solid #D7E2F5 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 12px 34px rgba(37, 99, 235, 0.10) !important;
+  padding: 10px 12px !important;
+}
+
+.st-key-chat_input_bar [data-testid="stHorizontalBlock"] {
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.st-key-chat_input_bar [data-testid="column"] {
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+/* + 버튼 크기 고정 */
+.st-key-chat_attach_demo [data-testid="stButton"] button,
+.st-key-chat_attach_demo [data-testid="stButton"] > button {
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  min-height: 46px !important;
+  height: 46px !important;
+  padding: 0 !important;
+  border-radius: 23px !important;
+  background: #EEF4FF !important;
+  border-color: #C7D2FE !important;
+  color: #2563EB !important;
+}
+
+.st-key-chat_input [data-testid="stTextArea"] {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+.st-key-chat_input [data-baseweb="textarea"],
+.st-key-chat_input [data-baseweb="textarea"]:focus,
+.st-key-chat_input [data-baseweb="textarea"]:focus-visible,
+.st-key-chat_input [data-baseweb="textarea"]:focus-within,
+.st-key-chat_input [data-baseweb="textarea"]:active,
+.st-key-chat_input [data-baseweb="textarea"] *,
+.st-key-chat_input [data-baseweb="textarea"] *:focus,
+.st-key-chat_input [data-baseweb="textarea"] *:focus-visible,
+.st-key-chat_input [data-baseweb="textarea"] *:focus-within,
+.st-key-chat_input [data-baseweb="textarea"] *:active,
+.st-key-chat_input [data-testid="stTextArea"] > div,
+.st-key-chat_input [data-testid="stTextArea"] > div:focus,
+.st-key-chat_input [data-testid="stTextArea"] > div:focus-visible,
+.st-key-chat_input [data-testid="stTextArea"] > div:focus-within,
+.st-key-chat_input [data-testid="stTextArea"] > div:active {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-color: transparent !important;
+}
+
+.st-key-chat_input [data-testid="stTextArea"] textarea {
+  min-height: 46px !important;
+  height: auto !important;
+  max-height: 132px !important;
+  field-sizing: content !important;
+  resize: none !important;
+  overflow-y: auto !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  caret-color: #1D4ED8 !important;
+  border: 1px solid #D7E2F5 !important;
+  border-radius: 22px !important;
+  background: #F8F9FC !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-color: transparent !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  padding: 12px 16px !important;
+  color: #0D1117 !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+.st-key-chat_input [data-testid="stTextArea"] textarea:focus,
+.st-key-chat_input [data-testid="stTextArea"] textarea:focus-visible,
+.st-key-chat_input [data-testid="stTextArea"] textarea:active {
+  background: #FFFFFF !important;
+  border-color: #BFD0FF !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+  outline: none !important;
+  outline-color: transparent !important;
+}
+
+.chat-send-demo-button {
+  min-height: 46px;
+  height: 46px;
+  border-radius: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.20);
+  user-select: none;
+  white-space: nowrap;
 }
 
 .chat-attach-note {
-  max-width: 760px;
-  margin: 8px auto 0;
+  margin: 0 0 8px 8px !important;
+  color: #2563EB !important;
+  font-size: 13px !important;
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 900px) {
+  [data-testid="stAppViewContainer"] > .main > .block-container {
+    padding-bottom: 12rem !important;
+  }
+
+  .st-key-chat_input_bar {
+    left: 72px !important;
+    width: calc(100vw - 90px) !important;
+    max-width: calc(100vw - 90px) !important;
+    bottom: 24px !important;
+    padding: 8px !important;
+  }
 }
 
 /* 말풍선 디자인 */
@@ -521,7 +655,33 @@ button[kind="primary"]:hover {
 .add-tag {
   border: 1.5px dashed #C7D2FE; border-radius: 20px;
   padding: 8px 18px; font-size: 13px; color: #9CA3AF;
-  text-align: center; cursor: pointer;
+  text-align: center; cursor: pointer; display: block;
+  margin-top: 15px; text-decoration: none !important;
+}
+.add-tag:hover {
+  background: #F8FAFF !important;
+  border-color: #AFC4FF !important;
+  color: #64748B !important;
+}
+.st-key-add_bill_utility [data-testid="stButton"] button,
+.st-key-add_bill_utility [data-testid="stButton"] > button {
+  border: 1.5px dashed #C7D2FE !important;
+  border-radius: 20px !important;
+  background: transparent !important;
+  color: #9CA3AF !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  justify-content: center !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  margin-top: 15px !important;
+}
+.st-key-add_bill_utility [data-testid="stButton"] button:hover,
+.st-key-add_bill_utility [data-testid="stButton"] > button:hover {
+  background: #F8FAFF !important;
+  border-color: #AFC4FF !important;
+  color: #64748B !important;
 }
 
 /* 위험 고지(Risk Card) 리디자인 */
@@ -646,7 +806,7 @@ button[kind="primary"]:hover {
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 106, 94, 0.42); }
   50% { transform: scale(1.24); box-shadow: 0 0 0 7px rgba(217, 106, 94, 0); }
 }
-.anomaly-popover-card {
+.anomaly-dialog-card {
   width: 100%;
   min-width: 360px;
   max-width: 420px;
@@ -658,14 +818,14 @@ button[kind="primary"]:hover {
   box-shadow: 0 14px 34px rgba(217, 106, 94, 0.1);
   text-align: left;
 }
-.anomaly-popover-top {
+.anomaly-dialog-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
   margin-bottom: 8px;
 }
-.anomaly-popover-badge {
+.anomaly-dialog-badge {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -676,50 +836,50 @@ button[kind="primary"]:hover {
   font-size: 12px;
   font-weight: 800;
 }
-.anomaly-popover-status {
+.anomaly-dialog-status {
   color: #D96A5E;
   font-size: 12px;
   font-weight: 800;
 }
-.anomaly-popover-title {
+.anomaly-dialog-title {
   margin: 0 0 6px;
   color: #0D1117;
   font-size: 18px;
   font-weight: 850;
 }
-.anomaly-popover-message {
+.anomaly-dialog-message {
   margin: 0;
   color: #475569;
   font-size: 14px;
   line-height: 1.65;
   font-weight: 600;
 }
-.anomaly-popover-grid {
+.anomaly-dialog-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 12px;
 }
-.anomaly-popover-field {
+.anomaly-dialog-field {
   border: 1px solid #F2D6D1;
   border-radius: 8px;
   background: #FFF9F8;
   padding: 8px 10px;
 }
-.anomaly-popover-field span {
+.anomaly-dialog-field span {
   display: block;
   color: #94A3B8;
   font-size: 12px;
   font-weight: 650;
 }
-.anomaly-popover-field strong {
+.anomaly-dialog-field strong {
   display: block;
   margin-top: 2px;
   color: #0D1117;
   font-size: 13px;
   font-weight: 800;
 }
-.anomaly-popover-note {
+.anomaly-dialog-note {
   margin-top: 10px;
   color: #64748B;
   font-size: 12px;
@@ -985,7 +1145,7 @@ def handle_mini_rail_action() -> None:
             and not st.session_state.anomaly_approved
         )
         if alert_active:
-            st.session_state.open_anomaly_dialog = True
+            open_dialog("anomaly")
     elif action == "profile":
         close_anomaly_dialog()
         st.session_state.page = "mypage"
@@ -1140,34 +1300,34 @@ def render_anomaly_dialog_body() -> None:
 
     st.markdown(
         f"""
-        <section class="anomaly-popover-card" aria-label="이상치 시스템 알림">
-          <div class="anomaly-popover-top">
-            <span class="anomaly-popover-badge">시스템 알림</span>
-            <span class="anomaly-popover-status">{safe_html(status_label)}</span>
+        <section class="anomaly-dialog-card" aria-label="이상치 시스템 알림">
+          <div class="anomaly-dialog-top">
+            <span class="anomaly-dialog-badge">시스템 알림</span>
+            <span class="anomaly-dialog-status">{safe_html(status_label)}</span>
           </div>
-          <h3 class="anomaly-popover-title">이상치가 발견되었습니다.</h3>
-          <p class="anomaly-popover-message">
+          <h3 class="anomaly-dialog-title">이상치가 발견되었습니다.</h3>
+          <p class="anomaly-dialog-message">
             고지서 주소와 등록 주소가 일치하지 않거나, 청구 금액이 비정상적으로 증가했습니다.
           </p>
-          <div class="anomaly-popover-grid">
-            <div class="anomaly-popover-field">
+          <div class="anomaly-dialog-grid">
+            <div class="anomaly-dialog-field">
               <span>카테고리</span>
               <strong>{safe_html(bill.get("category", "(데이터 연동 필요)"))}</strong>
             </div>
-            <div class="anomaly-popover-field">
+            <div class="anomaly-dialog-field">
               <span>청구 금액</span>
               <strong>{safe_html(amount_text)}</strong>
             </div>
-            <div class="anomaly-popover-field">
+            <div class="anomaly-dialog-field">
               <span>이메일</span>
               <strong>{safe_html(bill.get("email", "(데이터 연동 필요)"))}</strong>
             </div>
-            <div class="anomaly-popover-field">
+            <div class="anomaly-dialog-field">
               <span>상태</span>
               <strong>{safe_html(alert.get("status", "(데이터 연동 필요)"))}</strong>
             </div>
           </div>
-          <div class="anomaly-popover-note">
+          <div class="anomaly-dialog-note">
             {safe_html(alert.get("message", "(데이터 연동 필요)"))}<br />
             고지서 주소: {safe_html(bill.get("address", "(데이터 연동 필요)"))}
           </div>
@@ -1209,7 +1369,7 @@ def render_dialogs() -> None:
 
     if st.session_state.open_info_dialog:
         if hasattr(st, "dialog"):
-            @st.dialog("내 정보 수정")
+            @st.dialog("내 정보 수정", on_dismiss=close_dialogs)
             def info_dialog() -> None:
                 render_info_dialog_body()
             info_dialog()
@@ -1219,7 +1379,7 @@ def render_dialogs() -> None:
 
     if st.session_state.open_feature_dialog:
         if hasattr(st, "dialog"):
-            @st.dialog("보안 기능 추가")
+            @st.dialog("보안 기능 추가", on_dismiss=close_dialogs)
             def feature_dialog() -> None:
                 render_feature_dialog_body()
             feature_dialog()
@@ -1229,7 +1389,7 @@ def render_dialogs() -> None:
 
     if st.session_state.open_anomaly_dialog:
         if hasattr(st, "dialog"):
-            @st.dialog("이상치 알림")
+            @st.dialog("이상치 알림", on_dismiss=close_dialogs)
             def anomaly_dialog() -> None:
                 render_anomaly_dialog_body()
             anomaly_dialog()
@@ -1254,9 +1414,8 @@ def render_top_notification() -> None:
     _, bell_col = st.columns([11.2, 0.7], vertical_alignment="center")
     with bell_col:
         if st.button("🔔", key=bell_key, help="이상치 알림", use_container_width=True):
-            close_dialogs()
             if alert_active:
-                st.session_state.open_anomaly_dialog = True
+                open_dialog("anomaly")
                 st.rerun()
 
 
@@ -1454,30 +1613,33 @@ def render_chat_page() -> None:
         # 위험 감지 결과 정밀 진단서 카드 로드
         render_risk_card()
 
-    # 입력 컴포넌트 하단 바 배치
-    st.markdown('<div class="chat-input-shell">', unsafe_allow_html=True)
-    col_file, col_text = st.columns([0.7, 11.3], vertical_alignment="center")
-    
-    with col_file:
-        if st.button("＋", key="chat_attach_demo", help="파일 첨부 (데이터 연동 필요)", use_container_width=True):
-            # 데이터 연동 필요: 실제 파일 업로드는 추후 백엔드와 연결합니다.
-            close_dialogs()
-            close_anomaly_dialog()
-            st.session_state.attached_file = "파일 첨부 데모"
+    # 입력 컴포넌트 하단 고정 바
+    with st.container(key="chat_input_bar"):
+        if st.session_state.attached_file:
+            st.markdown(
+                f'<p class="attached-file-note chat-attach-note">📎 {safe_html(st.session_state.attached_file)} 상태입니다. (데이터 연동 필요)</p>',
+                unsafe_allow_html=True,
+            )
 
-    with col_text:
-        prompt_input = st.text_input(
-            "메시지 전송",
-            placeholder="이번 달 자동이체 지출 항목 중 의심스러운 고지서가 있어? (엔터키로 입력)",
-            label_visibility="collapsed",
-            key="chat_input"
-        )
+        col_file, col_text, col_send = st.columns([0.7, 10.2, 1.0], vertical_alignment="center", gap="small")
 
-    if st.session_state.attached_file:
-        st.markdown(
-            f'<p class="attached-file-note chat-attach-note">📎 {safe_html(st.session_state.attached_file)} 상태입니다. (데이터 연동 필요)</p>',
-            unsafe_allow_html=True,
-        )
+        with col_file:
+            if st.button("＋", key="chat_attach_demo", help="파일 첨부 (데이터 연동 필요)", use_container_width=True):
+                # 데이터 연동 필요: 실제 파일 업로드는 추후 백엔드와 연결합니다.
+                close_dialogs()
+                close_anomaly_dialog()
+                st.session_state.attached_file = "파일 첨부 데모"
+
+        with col_text:
+            prompt_input = st.text_area(
+                "메시지 전송",
+                placeholder="이번 달 자동이체 지출 항목 중 의심스러운 고지서가 있어? (엔터키로 입력)",
+                label_visibility="collapsed",
+                key="chat_input",
+            )
+
+        with col_send:
+            st.markdown('<div class="chat-send-demo-button">전송</div>', unsafe_allow_html=True)
 
     # 챗 전송 처리
     if prompt_input:
@@ -1499,8 +1661,6 @@ def render_chat_page() -> None:
         with st.spinner("BlueGuard AI 알고리즘 실행 중..."):
             st.session_state.ai_response_text = get_ai_response(final_prompt)
         st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ════════════════════════════════════════
@@ -1560,7 +1720,7 @@ def render_mypage() -> None:
             open_dialog("info")
             st.rerun()
     with col_mod_btn2:
-        if st.button("➕ 보안 알고리즘 연동", use_container_width=True):
+        if st.button("➕ 더 많은 공과금 등록하기", use_container_width=True):
             open_dialog("feature")
             st.rerun()
 
@@ -1574,9 +1734,11 @@ def render_mypage() -> None:
             <div class="transfer-tag">📋 수도 공과금</div>
             <div class="transfer-tag">⚡ 한국전력공사 전기세</div>
             <div class="transfer-tag">🔥 도시 가스 요금</div>
-            <div style="margin-top:15px;" class="add-tag">⊕ 더 많은 공과금 등록하기</div>
-        </div>
         """, unsafe_allow_html=True)
+        if st.button("⊕ 더 많은 공과금 등록하기", key="add_bill_utility", use_container_width=True):
+            open_dialog("feature")
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col_right:
         with st.container(border=True):
