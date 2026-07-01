@@ -41,6 +41,31 @@ BILL_DATA = {
     },
 }
 
+MOCK_BILL_PAYLOAD = {
+    "email": "demo@nexus.com",
+    "category": "가스비",
+    "amount": 150000,
+    "address": "서울시 강남구 테헤란로 123",
+}
+
+
+def mock_process_bill(bill_payload: dict | None = None) -> dict:
+    # 데이터 연동 필요: 추후 process_bill API 응답으로 대체할 mock 결과입니다.
+    payload = bill_payload or MOCK_BILL_PAYLOAD
+    return {
+        "hold": True,
+        "has_anomaly": True,
+        "status": "hold",
+        "message": "고지서 주소와 등록 주소가 일치하지 않습니다.",
+        "bill": payload,
+    }
+
+
+def send_bill_to_backend(bill_payload: dict) -> dict:
+    # 데이터 연동 필요: 실제 requests.post 호출은 백엔드 연결 단계에서 구현합니다.
+    return mock_process_bill(bill_payload)
+
+
 st.set_page_config(
     page_title=f"{BRAND_NAME} Beta",
     page_icon="🛡",
@@ -68,6 +93,7 @@ html, body,
 [data-testid="stSidebar"] {
   background: #F8F9FC !important;
   border-right: 1px solid #E8EBF2 !important;
+  z-index: 1000 !important;
 }
 
 [data-testid="stSidebar"] > div:first-child {
@@ -83,8 +109,103 @@ html, body,
   padding: 2.45rem 2.2rem 5.5rem;
 }
 
-#MainMenu, footer, header { visibility: hidden; }
-[data-testid="stToolbar"] { display: none; }
+#MainMenu, footer { visibility: hidden; }
+[data-testid="stHeader"] {
+  visibility: visible !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(10px);
+}
+[data-testid="stToolbar"] {
+  visibility: visible !important;
+  display: flex !important;
+}
+[data-testid="stAppDeployButton"] {
+  display: none !important;
+}
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapsedControl"] *,
+[data-testid="collapsedControl"],
+[data-testid="collapsedControl"] * {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.mini-sidebar-rail {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 56px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px 16px;
+  background: #FFFFFF;
+  border-right: 1px solid #E8EBF2;
+  box-shadow: 8px 0 20px rgba(15, 23, 42, 0.04);
+}
+.mini-rail-top,
+.mini-rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.mini-rail-logo,
+.mini-rail-icon,
+.mini-rail-profile {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+  text-decoration: none !important;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.mini-rail-logo {
+  border-radius: 50%;
+  background: #2563EB;
+  color: #FFFFFF;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+}
+.mini-rail-profile {
+  border-radius: 50%;
+  background: #EEF2FF;
+  color: #2563EB;
+  border: 1px solid #C7D2FE;
+  font-size: 16px;
+}
+.mini-rail-icon:hover,
+.mini-rail-profile:hover {
+  background: #EEF4FF;
+  color: #2563EB;
+  transform: translateY(-1px);
+}
+.mini-rail-alert {
+  color: #D96A5E;
+  background: #FFF1EF;
+}
+.mini-rail-alert::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #D96A5E;
+  border: 2px solid #FFFFFF;
+}
+.mini-rail-alert.blink::after {
+  animation: anomalyPulse 1.1s ease-in-out infinite;
+}
 
 /* 입력창 디자인 */
 [data-testid="stTextInput"] {
@@ -202,7 +323,7 @@ button[kind="primary"]:hover {
 
 .chat-input-shell {
   max-width: 760px;
-  margin: 0 auto;
+  margin: 30px auto 0;
   padding-top: 20px;
 }
 
@@ -251,15 +372,65 @@ button[kind="primary"]:hover {
 
 /* 최근 대화 히스토리 아이템 디자인 스타일링 */
 .recent-history-container {
-  padding: 0 10px;
-  margin-top: 10px;
+  width: 100% !important;
+  padding: 0 18px !important;
+  margin-top: 18px !important;
+  text-align: left !important;
 }
+
 .recent-label {
-  padding: 0 4px 10px;
-  color: #9CA3AF;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0;
+  width: 100% !important;
+  padding: 0 0 12px 0 !important;
+  text-align: left !important;
+  color: #9CA3AF !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+.recent-history-container [data-testid="stButton"] {
+  width: 100% !important;
+  display: block !important;
+  text-align: left !important;
+}
+
+.recent-history-container [data-testid="stButton"] button,
+.recent-history-container [data-testid="stButton"] > button,
+[class*="st-key-history_item_"] [data-testid="stButton"] button,
+[class*="st-key-history_item_"] [data-testid="stButton"] > button {
+  border: none !important;
+  background: transparent !important;
+  color: #334155 !important;
+  font-weight: 650 !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  display: flex !important;
+  margin: 0 !important;
+  transition: all 0.2s !important;
+}
+
+.recent-history-container [data-testid="stButton"] button:hover,
+.recent-history-container [data-testid="stButton"] > button:hover,
+[class*="st-key-history_item_"] [data-testid="stButton"] button:hover,
+[class*="st-key-history_item_"] [data-testid="stButton"] > button:hover {
+  background: #EEF4FF !important;
+  color: #2563EB !important;
+}
+
+.recent-history-container [data-testid="stButton"] button p,
+[class*="st-key-history_item_"] [data-testid="stButton"] button p {
+  width: 100% !important;
+  margin: 0 !important;
+  text-align: left !important;
+  display: block !important;
 }
 .recent-history-container [data-testid="stButton"] button,
 .recent-history-container [data-testid="stButton"] > button,
@@ -301,12 +472,13 @@ button[kind="primary"]:hover {
 
 /* 웰컴 화면 */
 .welcome-screen {
-  min-height: 55vh;
+  min-height: 62vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-bottom: 40px;
+  padding-top: 80px;
+  padding-bottom: 20px;
 }
 .welcome-label { font-size: 13px; color: #2563EB; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.05em; }
 .welcome-title { font-size: 42px; font-weight: 800; color: #0D1117; margin-bottom: 12px; text-align: center; letter-spacing: -1px; }
@@ -418,6 +590,156 @@ button[kind="primary"]:hover {
 }
 .detail-box strong { display: block; color: #C62828; font-size: 12px; }
 .detail-box span { display: block; margin-top: 4px; color: #374151; font-size: 13px; }
+
+.top-notification-spacer {
+  min-height: 44px;
+}
+.st-key-anomaly_bell_idle [data-testid="stButton"] button,
+.st-key-anomaly_bell_idle [data-testid="stButton"] > button,
+.st-key-anomaly_bell_static [data-testid="stButton"] button,
+.st-key-anomaly_bell_static [data-testid="stButton"] > button,
+.st-key-anomaly_bell_blink [data-testid="stButton"] button,
+.st-key-anomaly_bell_blink [data-testid="stButton"] > button {
+  position: relative !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  font-size: 18px !important;
+}
+.st-key-anomaly_bell_idle [data-testid="stButton"] button,
+.st-key-anomaly_bell_idle [data-testid="stButton"] > button {
+  border: 1px solid #D7E2F5 !important;
+  background: #F8FAFF !important;
+  color: #2563EB !important;
+}
+.st-key-anomaly_bell_static [data-testid="stButton"] button,
+.st-key-anomaly_bell_static [data-testid="stButton"] > button,
+.st-key-anomaly_bell_blink [data-testid="stButton"] button,
+.st-key-anomaly_bell_blink [data-testid="stButton"] > button {
+  border: 1px solid #FFC9C2 !important;
+  background: #FFF1EF !important;
+  color: #D96A5E !important;
+}
+.st-key-anomaly_bell_static [data-testid="stButton"] button::after,
+.st-key-anomaly_bell_static [data-testid="stButton"] > button::after,
+.st-key-anomaly_bell_blink [data-testid="stButton"] button::after,
+.st-key-anomaly_bell_blink [data-testid="stButton"] > button::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #D96A5E;
+  border: 2px solid #FFFFFF;
+}
+.st-key-anomaly_bell_blink [data-testid="stButton"] button::after,
+.st-key-anomaly_bell_blink [data-testid="stButton"] > button::after {
+  animation: anomalyPulse 1.1s ease-in-out infinite;
+}
+@keyframes anomalyPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 106, 94, 0.42); }
+  50% { transform: scale(1.24); box-shadow: 0 0 0 7px rgba(217, 106, 94, 0); }
+}
+.anomaly-popover-card {
+  width: 100%;
+  min-width: 360px;
+  max-width: 420px;
+  margin: 4px 0 10px auto;
+  border: 1px solid #FFC9C2;
+  border-radius: 14px;
+  background: #FFFFFF;
+  padding: 18px 20px;
+  box-shadow: 0 14px 34px rgba(217, 106, 94, 0.1);
+  text-align: left;
+}
+.anomaly-popover-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.anomaly-popover-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  background: #FFF1EF;
+  color: #B84C43;
+  padding: 0 11px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.anomaly-popover-status {
+  color: #D96A5E;
+  font-size: 12px;
+  font-weight: 800;
+}
+.anomaly-popover-title {
+  margin: 0 0 6px;
+  color: #0D1117;
+  font-size: 18px;
+  font-weight: 850;
+}
+.anomaly-popover-message {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 600;
+}
+.anomaly-popover-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+.anomaly-popover-field {
+  border: 1px solid #F2D6D1;
+  border-radius: 8px;
+  background: #FFF9F8;
+  padding: 8px 10px;
+}
+.anomaly-popover-field span {
+  display: block;
+  color: #94A3B8;
+  font-size: 12px;
+  font-weight: 650;
+}
+.anomaly-popover-field strong {
+  display: block;
+  margin-top: 2px;
+  color: #0D1117;
+  font-size: 13px;
+  font-weight: 800;
+}
+.anomaly-popover-note {
+  margin-top: 10px;
+  color: #64748B;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+.st-key-check_anomaly_alert [data-testid="stButton"] button,
+.st-key-check_anomaly_alert [data-testid="stButton"] > button {
+  border: 0 !important;
+  background: linear-gradient(135deg, #1D4ED8, #3B82F6) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 8px 18px rgba(29, 78, 216, 0.18) !important;
+}
+.st-key-approve_anomaly_alert [data-testid="stButton"] button,
+.st-key-approve_anomaly_alert [data-testid="stButton"] > button {
+  border: 1px solid #C7D2FE !important;
+  background: #FFFFFF !important;
+  color: #2563EB !important;
+  box-shadow: none !important;
+}
 
 /* 지출 리포트 리얼 SVG 그래프 스타일 */
 .graph-placeholder {
@@ -555,6 +877,11 @@ def init_state() -> None:
         "open_feature_dialog": False,
         "attached_file": None,
         "ai_response_text": "",
+        "anomaly_alert": None,
+        "show_anomaly_alert": False,
+        "open_anomaly_dialog": False,
+        "anomaly_approved": False,
+        "anomaly_checked": False,
         "chat_history": ["자동이체 이상 여부", "고지서 확인"]
     }
     for field in PROFILE_FIELDS:
@@ -570,6 +897,11 @@ def init_state() -> None:
             if not current_value:
                 st.session_state[field["key"]] = field["default"]
         st.session_state.profile_fields_initialized = True
+
+    if st.session_state.anomaly_alert is None:
+        alert = send_bill_to_backend(MOCK_BILL_PAYLOAD)
+        st.session_state.anomaly_alert = alert
+        st.session_state.show_anomaly_alert = bool(alert.get("hold") or alert.get("has_anomaly"))
 
 
 def safe_html(value: object) -> str:
@@ -598,6 +930,21 @@ def mask_sensitive_value(value: str, strength: int) -> str:
 def close_dialogs() -> None:
     st.session_state.open_info_dialog = False
     st.session_state.open_feature_dialog = False
+    st.session_state.open_anomaly_dialog = False
+
+
+def close_anomaly_dialog() -> None:
+    st.session_state.open_anomaly_dialog = False
+
+
+def open_dialog(dialog_name: str) -> None:
+    close_dialogs()
+    if dialog_name == "info":
+        st.session_state.open_info_dialog = True
+    elif dialog_name == "feature":
+        st.session_state.open_feature_dialog = True
+    elif dialog_name == "anomaly":
+        st.session_state.open_anomaly_dialog = True
 
 
 def reset_chat_state() -> None:
@@ -607,6 +954,46 @@ def reset_chat_state() -> None:
     st.session_state.ai_response_text = ""
     st.session_state.attached_file = None
     close_dialogs()
+
+
+def get_query_action() -> str:
+    action = st.query_params.get("mini_action", "")
+    if isinstance(action, list):
+        return str(action[0]) if action else ""
+    return str(action)
+
+
+def clear_query_action() -> None:
+    if "mini_action" in st.query_params:
+        del st.query_params["mini_action"]
+
+
+def handle_mini_rail_action() -> None:
+    action = get_query_action()
+    if not action:
+        return
+
+    close_dialogs()
+
+    if action == "new_chat":
+        reset_chat_state()
+    elif action == "notify":
+        alert = st.session_state.get("anomaly_alert") or {}
+        alert_active = (
+            bool(alert.get("hold") or alert.get("has_anomaly"))
+            and st.session_state.show_anomaly_alert
+            and not st.session_state.anomaly_approved
+        )
+        if alert_active:
+            st.session_state.open_anomaly_dialog = True
+    elif action == "profile":
+        close_anomaly_dialog()
+        st.session_state.page = "mypage"
+    elif action in {"open_sidebar", "search", "recent"}:
+        close_anomaly_dialog()
+
+    clear_query_action()
+    st.rerun()
 
 
 def get_bill_labels(period: str) -> list[str]:
@@ -744,7 +1131,82 @@ def render_feature_dialog_body() -> None:
         st.rerun()
 
 
+def render_anomaly_dialog_body() -> None:
+    alert = st.session_state.get("anomaly_alert") or {}
+    bill = alert.get("bill", {})
+    status_label = "HOLD" if alert.get("hold") else "ANOMALY"
+    amount_value = bill.get("amount", "(데이터 연동 필요)")
+    amount_text = f"{amount_value:,}원" if isinstance(amount_value, (int, float)) else str(amount_value)
+
+    st.markdown(
+        f"""
+        <section class="anomaly-popover-card" aria-label="이상치 시스템 알림">
+          <div class="anomaly-popover-top">
+            <span class="anomaly-popover-badge">시스템 알림</span>
+            <span class="anomaly-popover-status">{safe_html(status_label)}</span>
+          </div>
+          <h3 class="anomaly-popover-title">이상치가 발견되었습니다.</h3>
+          <p class="anomaly-popover-message">
+            고지서 주소와 등록 주소가 일치하지 않거나, 청구 금액이 비정상적으로 증가했습니다.
+          </p>
+          <div class="anomaly-popover-grid">
+            <div class="anomaly-popover-field">
+              <span>카테고리</span>
+              <strong>{safe_html(bill.get("category", "(데이터 연동 필요)"))}</strong>
+            </div>
+            <div class="anomaly-popover-field">
+              <span>청구 금액</span>
+              <strong>{safe_html(amount_text)}</strong>
+            </div>
+            <div class="anomaly-popover-field">
+              <span>이메일</span>
+              <strong>{safe_html(bill.get("email", "(데이터 연동 필요)"))}</strong>
+            </div>
+            <div class="anomaly-popover-field">
+              <span>상태</span>
+              <strong>{safe_html(alert.get("status", "(데이터 연동 필요)"))}</strong>
+            </div>
+          </div>
+          <div class="anomaly-popover-note">
+            {safe_html(alert.get("message", "(데이터 연동 필요)"))}<br />
+            고지서 주소: {safe_html(bill.get("address", "(데이터 연동 필요)"))}
+          </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    action_col_1, action_col_2 = st.columns([1.25, 1], gap="small")
+    with action_col_1:
+        if st.button("이상치 확인하기", key="check_anomaly_alert", use_container_width=True):
+            close_dialogs()
+            st.session_state.anomaly_checked = True
+            st.session_state.page = "chat"
+            st.session_state.show_risk_result = True
+            st.session_state.submitted_prompt = "고지서 이상치 확인"
+            st.session_state.ai_response_text = (
+                "[데모 답변] mock_process_bill() 응답에서 hold 및 has_anomaly가 감지되었습니다. "
+                "등록 주소와 고지서 주소, 청구 금액 변동을 확인한 뒤 납부 보류를 권장합니다."
+            )
+            st.rerun()
+    with action_col_2:
+        if st.button("승인하기", key="approve_anomaly_alert", use_container_width=True):
+            close_dialogs()
+            st.session_state.anomaly_approved = True
+            st.session_state.show_anomaly_alert = False
+            st.rerun()
+
+
 def render_dialogs() -> None:
+    open_dialogs = [
+        bool(st.session_state.open_info_dialog),
+        bool(st.session_state.open_feature_dialog),
+        bool(st.session_state.open_anomaly_dialog),
+    ]
+    if sum(open_dialogs) > 1:
+        st.session_state.open_feature_dialog = False
+        st.session_state.open_anomaly_dialog = False
+
     if st.session_state.open_info_dialog:
         if hasattr(st, "dialog"):
             @st.dialog("내 정보 수정")
@@ -764,6 +1226,38 @@ def render_dialogs() -> None:
         else:
             with st.expander("보안 기능 추가", expanded=True):
                 render_feature_dialog_body()
+
+    if st.session_state.open_anomaly_dialog:
+        if hasattr(st, "dialog"):
+            @st.dialog("이상치 알림")
+            def anomaly_dialog() -> None:
+                render_anomaly_dialog_body()
+            anomaly_dialog()
+        else:
+            with st.expander("이상치 알림", expanded=True):
+                render_anomaly_dialog_body()
+
+
+def render_top_notification() -> None:
+    alert = st.session_state.get("anomaly_alert") or {}
+    has_alert = bool(alert.get("hold") or alert.get("has_anomaly"))
+    alert_active = has_alert and st.session_state.show_anomaly_alert and not st.session_state.anomaly_approved
+    should_blink = alert_active and not st.session_state.anomaly_checked
+
+    if should_blink:
+        bell_key = "anomaly_bell_blink"
+    elif alert_active:
+        bell_key = "anomaly_bell_static"
+    else:
+        bell_key = "anomaly_bell_idle"
+
+    _, bell_col = st.columns([11.2, 0.7], vertical_alignment="center")
+    with bell_col:
+        if st.button("🔔", key=bell_key, help="이상치 알림", use_container_width=True):
+            close_dialogs()
+            if alert_active:
+                st.session_state.open_anomaly_dialog = True
+                st.rerun()
 
 
 # ════════════════════════════════════════
@@ -796,6 +1290,38 @@ def render_risk_card() -> None:
             </div>
           </div>
         </article>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_mini_sidebar_rail() -> None:
+    alert = st.session_state.get("anomaly_alert") or {}
+    alert_active = (
+        bool(alert.get("hold") or alert.get("has_anomaly"))
+        and st.session_state.show_anomaly_alert
+        and not st.session_state.anomaly_approved
+    )
+    alert_class = " mini-rail-alert"
+    if alert_active and not st.session_state.anomaly_checked:
+        alert_class += " blink"
+    if not alert_active:
+        alert_class = ""
+
+    st.markdown(
+        f"""
+        <nav class="mini-sidebar-rail" aria-label="접힌 사이드바 빠른 메뉴">
+          <div class="mini-rail-top">
+            <a class="mini-rail-logo" href="?mini_action=open_sidebar" title="사이드바 열기" aria-label="사이드바 열기">🛡</a>
+            <a class="mini-rail-icon" href="?mini_action=new_chat" title="새 채팅" aria-label="새 채팅">＋</a>
+            <a class="mini-rail-icon" href="?mini_action=search" title="검색 / 사이드바 열기" aria-label="검색">⌕</a>
+            <a class="mini-rail-icon" href="?mini_action=recent" title="최근 항목 / 사이드바 열기" aria-label="최근 항목">◷</a>
+            <a class="mini-rail-icon{alert_class}" href="?mini_action=notify" title="이상치 알림" aria-label="이상치 알림">🔔</a>
+          </div>
+          <div class="mini-rail-bottom">
+            <a class="mini-rail-profile" href="?mini_action=profile" title="마이페이지" aria-label="마이페이지">닉</a>
+          </div>
+        </nav>
         """,
         unsafe_allow_html=True,
     )
@@ -835,7 +1361,9 @@ def render_sidebar() -> None:
         
         # chat_history에 있는 대화 목록들을 텍스트 형태의 세련된 단추로 렌더링
         for idx, item in enumerate(st.session_state.chat_history):
-            if st.button(f"💬 {item}", use_container_width=True, key=f"history_item_{idx}"):
+            if st.button(f"💬 {item}", key=f"history_item_{idx}"):
+                close_dialogs()
+                close_anomaly_dialog()
                 st.session_state.submitted_prompt = item
                 st.session_state.show_risk_result = True
                 st.session_state.page = "chat"
@@ -851,6 +1379,8 @@ def render_sidebar() -> None:
         if st.session_state.page == "mypage":
             st.markdown('<div class="back-btn" style="margin-top: 8px;">', unsafe_allow_html=True)
             if st.button("← 메인 채팅방으로", use_container_width=True):
+                close_dialogs()
+                close_anomaly_dialog()
                 st.session_state.page = "chat"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -872,6 +1402,8 @@ def render_sidebar() -> None:
             # 프로필 아이콘 클릭 시 마이페이지로 즉시 이동
             st.markdown('<div class="profile-icon-button">', unsafe_allow_html=True)
             if st.button("👤", key="to_mypage"):
+                close_dialogs()
+                close_anomaly_dialog()
                 st.session_state.page = "mypage"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
@@ -929,6 +1461,8 @@ def render_chat_page() -> None:
     with col_file:
         if st.button("＋", key="chat_attach_demo", help="파일 첨부 (데이터 연동 필요)", use_container_width=True):
             # 데이터 연동 필요: 실제 파일 업로드는 추후 백엔드와 연결합니다.
+            close_dialogs()
+            close_anomaly_dialog()
             st.session_state.attached_file = "파일 첨부 데모"
 
     with col_text:
@@ -947,6 +1481,8 @@ def render_chat_page() -> None:
 
     # 챗 전송 처리
     if prompt_input:
+        close_dialogs()
+        close_anomaly_dialog()
         final_prompt = prompt_input.strip()
         if st.session_state.attached_file:
             final_prompt += f" [첨부파일: {st.session_state.attached_file}]"
@@ -1021,13 +1557,11 @@ def render_mypage() -> None:
     col_mod_btn1, col_mod_btn2, _ = st.columns([1.5, 1.5, 3])
     with col_mod_btn1:
         if st.button("👤 내 정보 마스킹 수정", use_container_width=True):
-            st.session_state.open_feature_dialog = False
-            st.session_state.open_info_dialog = True
+            open_dialog("info")
             st.rerun()
     with col_mod_btn2:
         if st.button("➕ 보안 알고리즘 연동", use_container_width=True):
-            st.session_state.open_info_dialog = False
-            st.session_state.open_feature_dialog = True
+            open_dialog("feature")
             st.rerun()
 
     # 지출 현황 및 리포트 (디자인 2 카드 레이아웃 배치)
@@ -1065,6 +1599,8 @@ def render_mypage() -> None:
                 with cat_cols[idx]:
                     btn_type = "primary" if st.session_state.selected_category == cat else "secondary"
                     if st.button(cat, use_container_width=True, key=f"cat_selector_{cat}", type=btn_type):
+                        close_dialogs()
+                        close_anomaly_dialog()
                         st.session_state.selected_category = cat
                         st.rerun()
 
@@ -1073,11 +1609,15 @@ def render_mypage() -> None:
             with p_cols[0]:
                 p_type = "primary" if st.session_state.selected_period == "6개월" else "secondary"
                 if st.button("6개월", key="btn_p6m", type=p_type, use_container_width=True):
+                    close_dialogs()
+                    close_anomaly_dialog()
                     st.session_state.selected_period = "6개월"
                     st.rerun()
             with p_cols[1]:
                 p_type = "primary" if st.session_state.selected_period == "1년" else "secondary"
                 if st.button("1년", key="btn_p1y", type=p_type, use_container_width=True):
+                    close_dialogs()
+                    close_anomaly_dialog()
                     st.session_state.selected_period = "1년"
                     st.rerun()
             with p_cols[2]:
@@ -1135,8 +1675,11 @@ def render_bill_table(category: str, period: str) -> None:
 
 def main() -> None:
     init_state()
+    handle_mini_rail_action()
     st.markdown(CSS, unsafe_allow_html=True)
+    render_mini_sidebar_rail()
     render_sidebar()
+    render_top_notification()
 
     if st.session_state.page == "mypage":
         render_mypage()
