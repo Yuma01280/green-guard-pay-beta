@@ -1,4 +1,5 @@
 from html import escape
+import re
 import pandas as pd
 import streamlit as st
 
@@ -10,6 +11,15 @@ def get_ai_response(prompt: str) -> str:
 
 BRAND_NAME = "BlueGuard Pay"
 BRAND_AI = "BlueGuard Pay AI"
+
+TEMP_ADMIN_USER = {
+    "email": "testadmin@blueguardpay.test",
+    "password": "1234",
+    "name": "BlueGuard Pay 관리자",
+    "role": "admin",
+}
+
+EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
 # 프로필 필드 정의
 PROFILE_FIELDS = [
@@ -127,18 +137,260 @@ html, body,
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="stSidebarCollapsedControl"] *,
 [data-testid="collapsedControl"],
-[data-testid="collapsedControl"] * {
+[data-testid="collapsedControl"] *,
+[data-testid="stExpandSidebarButton"],
+[data-testid="stExpandSidebarButton"] * {
   visibility: visible !important;
+  opacity: 1 !important;
+}
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],
+[data-testid="stExpandSidebarButton"] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border: 1.5px solid #2563EB !important;
+  border-radius: 10px !important;
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14) !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="collapsedControl"]:hover,
+[data-testid="stExpandSidebarButton"]:hover,
+[data-testid="stExpandSidebarButton"]:focus,
+[data-testid="stExpandSidebarButton"]:active {
+  border-color: #1D4ED8 !important;
+  background: #DBEAFE !important;
+  color: #1D4ED8 !important;
+}
+[data-testid="stSidebarCollapseButton"] button,
+[data-testid="stSidebarCollapseButton"] > button,
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapsedControl"] > button,
+[data-testid="collapsedControl"] button,
+[data-testid="collapsedControl"] > button,
+[data-testid="stExpandSidebarButton"] button,
+[data-testid="stExpandSidebarButton"] > button {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border: 1.5px solid #2563EB !important;
+  border-radius: 10px !important;
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14) !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 1 !important;
+}
+[data-testid="stSidebarCollapseButton"] button:hover,
+[data-testid="stSidebarCollapseButton"] > button:hover,
+[data-testid="stSidebarCollapsedControl"] button:hover,
+[data-testid="stSidebarCollapsedControl"] > button:hover,
+[data-testid="collapsedControl"] button:hover,
+[data-testid="collapsedControl"] > button:hover,
+[data-testid="stExpandSidebarButton"] button:hover,
+[data-testid="stExpandSidebarButton"] > button:hover {
+  border-color: #1D4ED8 !important;
+  background: #DBEAFE !important;
+  color: #1D4ED8 !important;
+}
+/* 사이드바 접기/열기 기본 화살표 색상 강제 변경 */
+[data-testid="stSidebarCollapseButton"] button svg,
+[data-testid="stSidebarCollapsedControl"] button svg,
+[data-testid="collapsedControl"] button svg,
+[data-testid="stExpandSidebarButton"] svg,
+[data-testid="stExpandSidebarButton"] button svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button svg path,
+[data-testid="stSidebarCollapsedControl"] button svg path,
+[data-testid="collapsedControl"] button svg path,
+[data-testid="stSidebarCollapseButton"] button svg polyline,
+[data-testid="stSidebarCollapsedControl"] button svg polyline,
+[data-testid="collapsedControl"] button svg polyline,
+[data-testid="stSidebarCollapseButton"] button svg line,
+[data-testid="stSidebarCollapsedControl"] button svg line,
+[data-testid="collapsedControl"] button svg line,
+[data-testid="stExpandSidebarButton"] svg path,
+[data-testid="stExpandSidebarButton"] svg polyline,
+[data-testid="stExpandSidebarButton"] svg line,
+[data-testid="stExpandSidebarButton"] button svg path,
+[data-testid="stExpandSidebarButton"] button svg polyline,
+[data-testid="stExpandSidebarButton"] button svg line {
+  color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button *,
+[data-testid="stSidebarCollapseButton"] > button *,
+[data-testid="stSidebarCollapsedControl"] button *,
+[data-testid="stSidebarCollapsedControl"] > button *,
+[data-testid="collapsedControl"] button *,
+[data-testid="collapsedControl"] > button *,
+[data-testid="stExpandSidebarButton"] *,
+[data-testid="stExpandSidebarButton"] button *,
+[data-testid="stExpandSidebarButton"] > button * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button:hover *,
+[data-testid="stSidebarCollapseButton"] > button:hover *,
+[data-testid="stSidebarCollapsedControl"] button:hover *,
+[data-testid="stSidebarCollapsedControl"] > button:hover *,
+[data-testid="collapsedControl"] button:hover *,
+[data-testid="collapsedControl"] > button:hover *,
+[data-testid="stExpandSidebarButton"]:hover *,
+[data-testid="stExpandSidebarButton"]:focus *,
+[data-testid="stExpandSidebarButton"]:active *,
+[data-testid="stExpandSidebarButton"] button:hover *,
+[data-testid="stExpandSidebarButton"] > button:hover * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stSidebarCollapsedControl"] > div,
+[data-testid="stSidebarCollapsedControl"] [role="button"],
+[data-testid="collapsedControl"],
+[data-testid="collapsedControl"] > div,
+[data-testid="collapsedControl"] [role="button"],
+[data-testid="stExpandSidebarButton"],
+button[aria-label*="sidebar" i],
+button[title*="sidebar" i] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border: 1.5px solid #2563EB !important;
+  border-radius: 10px !important;
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.14) !important;
+  opacity: 1 !important;
+}
+
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stSidebarCollapsedControl"] > div:hover,
+[data-testid="stSidebarCollapsedControl"] [role="button"]:hover,
+[data-testid="collapsedControl"]:hover,
+[data-testid="collapsedControl"] > div:hover,
+[data-testid="collapsedControl"] [role="button"]:hover,
+[data-testid="stExpandSidebarButton"]:hover,
+[data-testid="stExpandSidebarButton"]:focus,
+[data-testid="stExpandSidebarButton"]:active,
+button[aria-label*="sidebar" i]:hover,
+button[aria-label*="sidebar" i]:focus,
+button[aria-label*="sidebar" i]:active,
+button[title*="sidebar" i]:hover,
+button[title*="sidebar" i]:focus,
+button[title*="sidebar" i]:active {
+  border-color: #2563EB !important;
+  background: #DBEAFE !important;
+  color: #2563EB !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18) !important;
+}
+
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg *,
+[data-testid="collapsedControl"] svg,
+[data-testid="collapsedControl"] svg *,
+[data-testid="stExpandSidebarButton"],
+[data-testid="stExpandSidebarButton"] *,
+[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"],
+button[aria-label*="sidebar" i] svg,
+button[aria-label*="sidebar" i] svg *,
+button[title*="sidebar" i] svg,
+button[title*="sidebar" i] svg * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  stroke-opacity: 1 !important;
+  opacity: 1 !important;
+}
+
+button[data-testid="stExpandSidebarButton"] {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border: 2px solid #2563EB !important;
+  border-radius: 10px !important;
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.16) !important;
+  opacity: 1 !important;
+}
+
+button[data-testid="stExpandSidebarButton"]:hover,
+button[data-testid="stExpandSidebarButton"]:focus,
+button[data-testid="stExpandSidebarButton"]:active {
+  border: 2px solid #1D4ED8 !important;
+  background: #DBEAFE !important;
+  color: #1D4ED8 !important;
+  opacity: 1 !important;
+}
+
+button[data-testid="stExpandSidebarButton"] span,
+button[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"],
+button[data-testid="stExpandSidebarButton"] * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+}
+
+button[data-testid="stExpandSidebarButton"]:hover span,
+button[data-testid="stExpandSidebarButton"]:hover [data-testid="stIconMaterial"],
+button[data-testid="stExpandSidebarButton"]:hover *,
+button[data-testid="stExpandSidebarButton"]:focus span,
+button[data-testid="stExpandSidebarButton"]:focus [data-testid="stIconMaterial"],
+button[data-testid="stExpandSidebarButton"]:focus *,
+button[data-testid="stExpandSidebarButton"]:active span,
+button[data-testid="stExpandSidebarButton"]:active [data-testid="stIconMaterial"],
+button[data-testid="stExpandSidebarButton"]:active * {
+  color: #1D4ED8 !important;
+  -webkit-text-fill-color: #1D4ED8 !important;
+  fill: #1D4ED8 !important;
+  stroke: #1D4ED8 !important;
   opacity: 1 !important;
 }
 
 .st-key-mini_sidebar_rail {
   position: fixed !important;
   inset: 0 auto 0 0 !important;
-  width: 56px !important;
+  width: 64px !important;
   height: 100vh !important;
   z-index: 900 !important;
-  padding: 12px 8px 16px !important;
+  padding: 14px 10px 18px !important;
   background: #FFFFFF !important;
   border-right: 1px solid #E8EBF2 !important;
   box-shadow: 8px 0 20px rgba(15, 23, 42, 0.04) !important;
@@ -150,31 +402,38 @@ html, body,
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 16px !important;
 }
 .mini-rail-fill {
-  min-height: calc(100vh - 318px);
+  min-height: calc(100vh - 392px);
 }
 .st-key-mini_sidebar_rail [data-testid="stButton"] {
-  width: 38px !important;
-  height: 38px !important;
+  width: 44px !important;
+  height: 44px !important;
   margin: 0 !important;
 }
 .st-key-mini_sidebar_rail [data-testid="stButton"] button,
 .st-key-mini_sidebar_rail [data-testid="stButton"] > button {
   position: relative !important;
-  width: 38px !important;
-  height: 38px !important;
-  min-height: 38px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
   border: 0 !important;
-  border-radius: 12px !important;
+  border-radius: 14px !important;
   background: transparent !important;
   color: #2563EB !important;
   box-shadow: none !important;
   padding: 0 !important;
-  font-size: 18px !important;
+  font-size: 23px !important;
   line-height: 1 !important;
   transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+.st-key-mini_sidebar_rail [data-testid="stButton"] button p,
+.st-key-mini_sidebar_rail [data-testid="stButton"] > button p {
+  font-size: 23px !important;
+  line-height: 1 !important;
+  color: inherit !important;
+  font-weight: 800 !important;
 }
 .st-key-mini_sidebar_rail [data-testid="stButton"] button:hover,
 .st-key-mini_sidebar_rail [data-testid="stButton"] > button:hover {
@@ -187,13 +446,55 @@ html, body,
 .st-key-mini_rail_profile [data-testid="stButton"] button,
 .st-key-mini_rail_profile [data-testid="stButton"] > button {
   border-radius: 50% !important;
-  background: #EEF2FF !important;
-  border: 1px solid #C7D2FE !important;
+  background: #EEF4FF !important;
+  border: 1.5px solid #BFD0FF !important;
+  color: #1D4ED8 !important;
 }
 .st-key-mini_rail_logo [data-testid="stButton"] button,
 .st-key-mini_rail_logo [data-testid="stButton"] > button {
-  color: #8EA9FF !important;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.10) !important;
+  background: #EFF6FF !important;
+  border: 1.5px solid #2563EB !important;
+  color: #2563EB !important;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16) !important;
+  font-size: 24px !important;
+  font-weight: 900 !important;
+}
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover {
+  background: #DBEAFE !important;
+  border-color: #1D4ED8 !important;
+  color: #1D4ED8 !important;
+}
+.st-key-mini_rail_logo [data-testid="stButton"] button p,
+.st-key-mini_rail_logo [data-testid="stButton"] button span,
+.st-key-mini_rail_logo [data-testid="stButton"] button div,
+.st-key-mini_rail_logo [data-testid="stButton"] button *,
+.st-key-mini_rail_logo [data-testid="stButton"] > button p,
+.st-key-mini_rail_logo [data-testid="stButton"] > button span,
+.st-key-mini_rail_logo [data-testid="stButton"] > button div,
+.st-key-mini_rail_logo [data-testid="stButton"] > button * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover p,
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover span,
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover div,
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover *,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover p,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover span,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover div,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover * {
+  color: #1D4ED8 !important;
+  -webkit-text-fill-color: #1D4ED8 !important;
+  fill: #1D4ED8 !important;
+  stroke: #1D4ED8 !important;
+  opacity: 1 !important;
 }
 .st-key-mini_rail_notify_static [data-testid="stButton"] button,
 .st-key-mini_rail_notify_static [data-testid="stButton"] > button,
@@ -201,6 +502,8 @@ html, body,
 .st-key-mini_rail_notify_blink [data-testid="stButton"] > button {
   color: #D96A5E !important;
   background: #FFF1EF !important;
+  border: 1.5px solid #FFC9C2 !important;
+  box-shadow: 0 8px 18px rgba(217, 106, 94, 0.11) !important;
 }
 .st-key-mini_rail_notify_static [data-testid="stButton"] button::after,
 .st-key-mini_rail_notify_static [data-testid="stButton"] > button::after,
@@ -208,10 +511,10 @@ html, body,
 .st-key-mini_rail_notify_blink [data-testid="stButton"] > button::after {
   content: "";
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
+  top: 7px;
+  right: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #D96A5E;
   border: 2px solid #FFFFFF;
@@ -631,6 +934,147 @@ html, body,
 .welcome-label { font-size: 13px; color: #2563EB; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.05em; }
 .welcome-title { font-size: 42px; font-weight: 800; color: #0D1117; margin-bottom: 12px; text-align: center; letter-spacing: -1px; }
 .welcome-sub { font-size: 15px; color: #6B7280; text-align: center; }
+
+/* 로그인 화면 */
+.st-key-login_card {
+  width: min(460px, calc(100vw - 48px)) !important;
+  margin: min(12vh, 110px) auto 0 !important;
+  padding: 34px 34px 30px !important;
+  border: 1px solid #DDE7FF !important;
+  border-radius: 18px !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 18px 55px rgba(37, 99, 235, 0.10) !important;
+}
+.login-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.login-logo-mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #1D4ED8, #3B82F6);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+.login-brand-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0D1117;
+}
+.login-brand-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #334155;
+  font-weight: 700;
+}
+.login-title {
+  margin: 0 0 8px;
+  color: #0D1117;
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+.login-desc {
+  margin: 0 0 24px;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 600;
+}
+.st-key-login_card [data-testid="stForm"] {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+.st-key-login_card [data-testid="stTextInput"] {
+  margin-bottom: 12px !important;
+}
+.st-key-login_card label,
+.st-key-login_card [data-testid="stWidgetLabel"],
+.st-key-login_card [data-testid="stWidgetLabel"] p {
+  color: #111827 !important;
+  opacity: 1 !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+}
+.st-key-login_card [data-testid="stTextInput"] [data-baseweb="input"] {
+  background: #F8FAFF !important;
+  border-color: #C7D7FF !important;
+}
+.st-key-login_card [data-testid="stTextInput"] [data-baseweb="input"]:focus-within {
+  background: #FFFFFF !important;
+  border-color: #BFD0FF !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.09) !important;
+}
+.st-key-login_card [data-testid="stTextInput"] input {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 650 !important;
+}
+.st-key-login_card [data-testid="stTextInput"] input::placeholder {
+  color: #6B7280 !important;
+  -webkit-text-fill-color: #6B7280 !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+.st-key-login_card [data-baseweb="input"] svg,
+.st-key-login_card [data-baseweb="input"] button {
+  color: #1D4ED8 !important;
+  opacity: 1 !important;
+}
+.st-key-login_card [data-testid="stFormSubmitButton"] button {
+  min-height: 46px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #1D4ED8, #3B82F6) !important;
+  color: #FFFFFF !important;
+  border: 0 !important;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.20) !important;
+  font-weight: 800 !important;
+}
+.login-error {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  border: 1px solid #FFC9C2;
+  background: #FFF1EF;
+  color: #B8463B;
+  font-size: 13px;
+  font-weight: 700;
+}
+.login-demo-note {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #F3F7FD;
+  border: 1px solid #DDE7FF;
+  color: #1F2937;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+.login-demo-note strong {
+  color: #0F172A;
+  font-weight: 850;
+}
+.permission-alert {
+  width: min(760px, 100%);
+  margin: 0 auto 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #FFC9C2;
+  background: #FFF1EF;
+  color: #B8463B;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
 
 /* 프로필 및 마이페이지 카드 */
 .card-box {
@@ -1057,6 +1501,57 @@ div[data-testid="stDialog"] p,
 div[data-testid="stDialog"] label {
   color: #0D1117 !important;
 }
+div[data-testid="stDialog"] h2,
+div[data-testid="stDialog"] h3,
+div[data-testid="stDialog"] p,
+div[data-testid="stDialog"] label {
+  color: #0D1117 !important;
+}
+
+/* 닫힌 사이드바 상단 mini_rail_logo 버튼 화살표 강제 파란색 */
+.st-key-mini_rail_logo [data-testid="stButton"] button,
+.st-key-mini_rail_logo [data-testid="stButton"] > button {
+  width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid #2563EB !important;
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+}
+
+.st-key-mini_rail_logo [data-testid="stButton"] button *,
+.st-key-mini_rail_logo [data-testid="stButton"] > button * {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  fill: #2563EB !important;
+  stroke: #2563EB !important;
+  opacity: 1 !important;
+  font-size: 28px !important;
+  font-weight: 900 !important;
+}
+
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover {
+  border-color: #1D4ED8 !important;
+  background: #DBEAFE !important;
+  color: #1D4ED8 !important;
+  -webkit-text-fill-color: #1D4ED8 !important;
+}
+
+.st-key-mini_rail_logo [data-testid="stButton"] button:hover *,
+.st-key-mini_rail_logo [data-testid="stButton"] > button:hover * {
+  color: #1D4ED8 !important;
+  -webkit-text-fill-color: #1D4ED8 !important;
+  fill: #1D4ED8 !important;
+  stroke: #1D4ED8 !important;
+  opacity: 1 !important;
+}
+
 </style>
 """
 
@@ -1079,7 +1574,11 @@ def init_state() -> None:
         "open_anomaly_dialog": False,
         "anomaly_approved": False,
         "anomaly_checked": False,
-        "chat_history": ["자동이체 이상 여부", "고지서 확인"]
+        "chat_history": ["자동이체 이상 여부", "고지서 확인"],
+        "isLoggedIn": False,
+        "currentUser": None,
+        "login_error": "",
+        "permission_message": "",
     }
     for field in PROFILE_FIELDS:
         defaults[field["key"]] = field["default"]
@@ -1103,6 +1602,40 @@ def init_state() -> None:
 
 def safe_html(value: object) -> str:
     return escape(str(value))
+
+
+def is_valid_email(email: str) -> bool:
+    return bool(EMAIL_PATTERN.fullmatch(email.strip()))
+
+
+def mock_auth(email: str, password: str) -> dict | None:
+    # 데이터 연동 필요: 추후 실제 로그인 API/DB 검증으로 교체할 위치입니다.
+    normalized_email = email.strip().lower()
+    if normalized_email == TEMP_ADMIN_USER["email"] and password == TEMP_ADMIN_USER["password"]:
+        return {
+            "email": TEMP_ADMIN_USER["email"],
+            "name": TEMP_ADMIN_USER["name"],
+            "role": TEMP_ADMIN_USER["role"],
+        }
+    return None
+
+
+def current_user() -> dict:
+    user = st.session_state.get("currentUser")
+    return user if isinstance(user, dict) else {}
+
+
+def is_admin_user() -> bool:
+    return bool(st.session_state.get("isLoggedIn")) and current_user().get("role") == "admin"
+
+
+def require_admin_permission() -> bool:
+    if is_admin_user():
+        st.session_state.permission_message = ""
+        return True
+    close_dialogs()
+    st.session_state.permission_message = "관리자 권한이 필요합니다."
+    return False
 
 
 def profile_value(key: str) -> str:
@@ -1135,6 +1668,9 @@ def close_anomaly_dialog() -> None:
 
 
 def open_dialog(dialog_name: str) -> None:
+    if dialog_name in {"info", "feature"} and not require_admin_permission():
+        return
+
     close_dialogs()
     if dialog_name == "info":
         st.session_state.open_info_dialog = True
@@ -1169,6 +1705,81 @@ def run_recent_chat_prompt(prompt: str) -> None:
     st.session_state.show_risk_result = True
     st.session_state.page = "chat"
     st.session_state.ai_response_text = get_ai_response(prompt)
+
+
+def render_login_page() -> None:
+    with st.container(key="login_card"):
+        st.markdown(
+            f"""
+            <div class="login-logo-row">
+              <div class="login-logo-mark">🛡</div>
+              <div>
+                <div class="login-brand-name">{safe_html(BRAND_NAME)}</div>
+                <div class="login-brand-sub">AI 금융 사고 방어 서비스</div>
+              </div>
+            </div>
+            <h1 class="login-title">로그인</h1>
+            <p class="login-desc">관리자 계정으로 접속하면 개인정보 수정과 공과금 등록 기능을 사용할 수 있습니다.</p>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        with st.form("login_form", clear_on_submit=False):
+            email = st.text_input(
+                "이메일",
+                placeholder="Gmail, Naver 등 사용하는 이메일을 입력해주세요",
+                key="login_email",
+            )
+            password = st.text_input(
+                "비밀번호",
+                placeholder="비밀번호를 입력하세요",
+                type="password",
+                key="login_password",
+            )
+            submitted = st.form_submit_button("로그인", use_container_width=True)
+
+        if submitted:
+            st.session_state.login_error = ""
+            st.session_state.permission_message = ""
+
+            if not is_valid_email(email):
+                st.session_state.login_error = "올바른 이메일 형식을 넣어주세요."
+            else:
+                user = mock_auth(email, password)
+                if user is None:
+                    st.session_state.login_error = "아이디 또는 비밀번호가 올바르지 않습니다."
+                else:
+                    st.session_state.isLoggedIn = True
+                    st.session_state.currentUser = user
+                    st.session_state.login_error = ""
+                    reset_chat_state()
+                    st.rerun()
+
+        if st.session_state.login_error:
+            st.markdown(
+                f'<div class="login-error">{safe_html(st.session_state.login_error)}</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown(
+            f"""
+            <div class="login-demo-note">
+              데모 관리자 계정<br>
+              아이디: <strong>{safe_html(TEMP_ADMIN_USER["email"])}</strong><br>
+              비밀번호: <strong>1234</strong>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def render_permission_notice() -> None:
+    message = str(st.session_state.get("permission_message", "")).strip()
+    if message:
+        st.markdown(
+            f'<div class="permission-alert">{safe_html(message)}</div>',
+            unsafe_allow_html=True,
+        )
 
 
 def get_bill_labels(period: str) -> list[str]:
@@ -1477,7 +2088,7 @@ def render_mini_sidebar_rail() -> None:
 
     with st.container(key="mini_sidebar_rail"):
         with st.container(key="mini_rail_top"):
-            if st.button("‹", key="mini_rail_logo", help="홈 / 사이드바 토글", use_container_width=True):
+            if st.button("«", key="mini_rail_logo", help="홈 / 사이드바 토글", use_container_width=True):
                 close_dialogs()
                 close_anomaly_dialog()
                 st.session_state.page = "chat"
@@ -1794,7 +2405,8 @@ def render_mypage() -> None:
                     if st.button(cat, use_container_width=True, key=f"cat_selector_{cat}", type=btn_type):
                         close_dialogs()
                         close_anomaly_dialog()
-                        st.session_state.selected_category = cat
+                        if require_admin_permission():
+                            st.session_state.selected_category = cat
                         st.rerun()
 
             # 기간 필터 버튼 렌더링
@@ -1869,9 +2481,15 @@ def render_bill_table(category: str, period: str) -> None:
 def main() -> None:
     init_state()
     st.markdown(CSS, unsafe_allow_html=True)
+
+    if not st.session_state.isLoggedIn:
+        render_login_page()
+        return
+
     render_mini_sidebar_rail()
     render_sidebar()
     render_top_notification()
+    render_permission_notice()
 
     if st.session_state.page == "mypage":
         render_mypage()
