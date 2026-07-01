@@ -1643,6 +1643,23 @@ def profile_value(key: str) -> str:
     return value if value else "(데이터 연동 필요)"
 
 
+def display_user_name() -> str:
+    # 데이터 연동 필요: 추후 DB user/profile 응답의 표시 이름으로 교체할 위치입니다.
+    return profile_value("name")
+
+
+def display_user_title() -> str:
+    name = display_user_name()
+    return f"{name} 님" if not name.startswith("(") else "마이데이터 프로필"
+
+
+def display_user_avatar_text() -> str:
+    name = display_user_name().strip()
+    if not name or name.startswith("("):
+        return "?"
+    return name[0]
+
+
 def mask_sensitive_value(value: str, strength: int) -> str:
     characters = list(value)
     maskable_indexes = [index for index, char in enumerate(characters) if char.isalnum()]
@@ -2081,6 +2098,7 @@ def render_risk_card() -> None:
 def render_mini_sidebar_rail() -> None:
     alert_active = is_anomaly_alert_active()
     notify_key = "mini_rail_notify_idle"
+    avatar_text = display_user_avatar_text()
     if alert_active and not st.session_state.anomaly_checked:
         notify_key = "mini_rail_notify_blink"
     elif alert_active:
@@ -2121,7 +2139,7 @@ def render_mini_sidebar_rail() -> None:
         st.markdown('<div class="mini-rail-fill" aria-hidden="true"></div>', unsafe_allow_html=True)
 
         with st.container(key="mini_rail_bottom"):
-            if st.button("닉", key="mini_rail_profile", help="마이페이지", use_container_width=True):
+            if st.button(avatar_text, key="mini_rail_profile", help="마이페이지", use_container_width=True):
                 close_dialogs()
                 close_anomaly_dialog()
                 st.session_state.page = "mypage"
@@ -2133,6 +2151,9 @@ def render_mini_sidebar_rail() -> None:
 # ════════════════════════════════════════
 def render_sidebar() -> None:
     with st.sidebar:
+        sidebar_display_title = display_user_title()
+        sidebar_avatar_text = display_user_avatar_text()
+
         # 상단 로고 (디자인 2 적용)
         st.markdown("""
         <div style="padding:24px 16px 12px;">
@@ -2192,9 +2213,9 @@ def render_sidebar() -> None:
         with col_prof:
             st.markdown(f"""
             <div class="sidebar-profile">
-                <div class="avatar-sm">닉</div>
+                <div class="avatar-sm">{safe_html(sidebar_avatar_text)}</div>
                 <div>
-                    <div class="profile-name">닉네임 님</div>
+                    <div class="profile-name">{safe_html(sidebar_display_title)}</div>
                     <div class="profile-sub">데이터 연동 필요</div>
                 </div>
             </div>
@@ -2312,8 +2333,7 @@ def render_mypage() -> None:
     st.markdown('<div style="max-width:860px; margin: 0 auto;">', unsafe_allow_html=True)
 
     # 마이페이지 헤더 카드 (디자인 2 적용)
-    profile_name = profile_value("name")
-    display_title = f"{profile_name} 님" if not profile_name.startswith("(") else "마이데이터 프로필"
+    display_title = display_user_title()
 
     st.markdown(f"""
     <div class="card-box">
