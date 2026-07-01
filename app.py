@@ -132,67 +132,80 @@ html, body,
   opacity: 1 !important;
 }
 
-.mini-sidebar-rail {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: 56px;
-  z-index: 900;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 8px 16px;
-  background: #FFFFFF;
-  border-right: 1px solid #E8EBF2;
-  box-shadow: 8px 0 20px rgba(15, 23, 42, 0.04);
+.st-key-mini_sidebar_rail {
+  position: fixed !important;
+  inset: 0 auto 0 0 !important;
+  width: 56px !important;
+  height: 100vh !important;
+  z-index: 900 !important;
+  padding: 12px 8px 16px !important;
+  background: #FFFFFF !important;
+  border-right: 1px solid #E8EBF2 !important;
+  box-shadow: 8px 0 20px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
-.mini-rail-top,
-.mini-rail-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+.st-key-mini_rail_top [data-testid="stVerticalBlock"],
+.st-key-mini_rail_bottom [data-testid="stVerticalBlock"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
-.mini-rail-logo,
-.mini-rail-icon,
-.mini-rail-profile {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #334155;
-  text-decoration: none !important;
-  font-size: 18px;
-  line-height: 1;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+.mini-rail-fill {
+  min-height: calc(100vh - 318px);
 }
-.mini-rail-logo {
-  border-radius: 50%;
-  background: #2563EB;
-  color: #FFFFFF;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+.st-key-mini_sidebar_rail [data-testid="stButton"] {
+  width: 38px !important;
+  height: 38px !important;
+  margin: 0 !important;
 }
-.mini-rail-profile {
-  border-radius: 50%;
-  background: #EEF2FF;
-  color: #2563EB;
-  border: 1px solid #C7D2FE;
-  font-size: 16px;
+.st-key-mini_sidebar_rail [data-testid="stButton"] button,
+.st-key-mini_sidebar_rail [data-testid="stButton"] > button {
+  position: relative !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  color: #2563EB !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
 }
-.mini-rail-icon:hover,
-.mini-rail-profile:hover {
-  background: #EEF4FF;
-  color: #2563EB;
+.st-key-mini_sidebar_rail [data-testid="stButton"] button:hover,
+.st-key-mini_sidebar_rail [data-testid="stButton"] > button:hover {
+  background: #EEF4FF !important;
+  color: #2563EB !important;
   transform: translateY(-1px);
 }
-.mini-rail-alert {
-  color: #D96A5E;
-  background: #FFF1EF;
+.st-key-mini_rail_logo [data-testid="stButton"] button,
+.st-key-mini_rail_logo [data-testid="stButton"] > button,
+.st-key-mini_rail_profile [data-testid="stButton"] button,
+.st-key-mini_rail_profile [data-testid="stButton"] > button {
+  border-radius: 50% !important;
+  background: #EEF2FF !important;
+  border: 1px solid #C7D2FE !important;
 }
-.mini-rail-alert::after {
+.st-key-mini_rail_logo [data-testid="stButton"] button,
+.st-key-mini_rail_logo [data-testid="stButton"] > button {
+  color: #8EA9FF !important;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.10) !important;
+}
+.st-key-mini_rail_notify_static [data-testid="stButton"] button,
+.st-key-mini_rail_notify_static [data-testid="stButton"] > button,
+.st-key-mini_rail_notify_blink [data-testid="stButton"] button,
+.st-key-mini_rail_notify_blink [data-testid="stButton"] > button {
+  color: #D96A5E !important;
+  background: #FFF1EF !important;
+}
+.st-key-mini_rail_notify_static [data-testid="stButton"] button::after,
+.st-key-mini_rail_notify_static [data-testid="stButton"] > button::after,
+.st-key-mini_rail_notify_blink [data-testid="stButton"] button::after,
+.st-key-mini_rail_notify_blink [data-testid="stButton"] > button::after {
   content: "";
   position: absolute;
   top: 6px;
@@ -203,7 +216,8 @@ html, body,
   background: #D96A5E;
   border: 2px solid #FFFFFF;
 }
-.mini-rail-alert.blink::after {
+.st-key-mini_rail_notify_blink [data-testid="stButton"] button::after,
+.st-key-mini_rail_notify_blink [data-testid="stButton"] > button::after {
   animation: anomalyPulse 1.1s ease-in-out infinite;
 }
 
@@ -754,6 +768,18 @@ html, body,
 .top-notification-spacer {
   min-height: 44px;
 }
+.st-key-anomaly_bell_idle,
+.st-key-anomaly_bell_static,
+.st-key-anomaly_bell_blink {
+  position: fixed !important;
+  top: 76px !important;
+  right: 56px !important;
+  z-index: 920 !important;
+  width: 52px !important;
+  height: 52px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 .st-key-anomaly_bell_idle [data-testid="stButton"] button,
 .st-key-anomaly_bell_idle [data-testid="stButton"] > button,
 .st-key-anomaly_bell_static [data-testid="stButton"] button,
@@ -761,20 +787,22 @@ html, body,
 .st-key-anomaly_bell_blink [data-testid="stButton"] button,
 .st-key-anomaly_bell_blink [data-testid="stButton"] > button {
   position: relative !important;
-  width: 44px !important;
-  height: 44px !important;
-  min-height: 44px !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-height: 52px !important;
   padding: 0 !important;
   border-radius: 50% !important;
-  box-shadow: none !important;
+  box-shadow: 0 12px 28px rgba(217, 106, 94, 0.10) !important;
   overflow: visible !important;
-  font-size: 18px !important;
+  font-size: 21px !important;
+  line-height: 1 !important;
 }
 .st-key-anomaly_bell_idle [data-testid="stButton"] button,
 .st-key-anomaly_bell_idle [data-testid="stButton"] > button {
   border: 1px solid #D7E2F5 !important;
   background: #F8FAFF !important;
   color: #2563EB !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.10) !important;
 }
 .st-key-anomaly_bell_static [data-testid="stButton"] button,
 .st-key-anomaly_bell_static [data-testid="stButton"] > button,
@@ -783,6 +811,7 @@ html, body,
   border: 1px solid #FFC9C2 !important;
   background: #FFF1EF !important;
   color: #D96A5E !important;
+  box-shadow: 0 12px 28px rgba(217, 106, 94, 0.14) !important;
 }
 .st-key-anomaly_bell_static [data-testid="stButton"] button::after,
 .st-key-anomaly_bell_static [data-testid="stButton"] > button::after,
@@ -790,10 +819,10 @@ html, body,
 .st-key-anomaly_bell_blink [data-testid="stButton"] > button::after {
   content: "";
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 9px;
-  height: 9px;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #D96A5E;
   border: 2px solid #FFFFFF;
@@ -805,6 +834,14 @@ html, body,
 @keyframes anomalyPulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 106, 94, 0.42); }
   50% { transform: scale(1.24); box-shadow: 0 0 0 7px rgba(217, 106, 94, 0); }
+}
+@media (max-width: 900px) {
+  .st-key-anomaly_bell_idle,
+  .st-key-anomaly_bell_static,
+  .st-key-anomaly_bell_blink {
+    top: 72px !important;
+    right: 22px !important;
+  }
 }
 .anomaly-dialog-card {
   width: 100%;
@@ -1116,44 +1153,22 @@ def reset_chat_state() -> None:
     close_dialogs()
 
 
-def get_query_action() -> str:
-    action = st.query_params.get("mini_action", "")
-    if isinstance(action, list):
-        return str(action[0]) if action else ""
-    return str(action)
+def is_anomaly_alert_active() -> bool:
+    alert = st.session_state.get("anomaly_alert") or {}
+    return (
+        bool(alert.get("hold") or alert.get("has_anomaly"))
+        and st.session_state.show_anomaly_alert
+        and not st.session_state.anomaly_approved
+    )
 
 
-def clear_query_action() -> None:
-    if "mini_action" in st.query_params:
-        del st.query_params["mini_action"]
-
-
-def handle_mini_rail_action() -> None:
-    action = get_query_action()
-    if not action:
-        return
-
+def run_recent_chat_prompt(prompt: str) -> None:
     close_dialogs()
-
-    if action == "new_chat":
-        reset_chat_state()
-    elif action == "notify":
-        alert = st.session_state.get("anomaly_alert") or {}
-        alert_active = (
-            bool(alert.get("hold") or alert.get("has_anomaly"))
-            and st.session_state.show_anomaly_alert
-            and not st.session_state.anomaly_approved
-        )
-        if alert_active:
-            open_dialog("anomaly")
-    elif action == "profile":
-        close_anomaly_dialog()
-        st.session_state.page = "mypage"
-    elif action in {"open_sidebar", "search", "recent"}:
-        close_anomaly_dialog()
-
-    clear_query_action()
-    st.rerun()
+    close_anomaly_dialog()
+    st.session_state.submitted_prompt = prompt
+    st.session_state.show_risk_result = True
+    st.session_state.page = "chat"
+    st.session_state.ai_response_text = get_ai_response(prompt)
 
 
 def get_bill_labels(period: str) -> list[str]:
@@ -1411,12 +1426,10 @@ def render_top_notification() -> None:
     else:
         bell_key = "anomaly_bell_idle"
 
-    _, bell_col = st.columns([11.2, 0.7], vertical_alignment="center")
-    with bell_col:
-        if st.button("🔔", key=bell_key, help="이상치 알림", use_container_width=True):
-            if alert_active:
-                open_dialog("anomaly")
-                st.rerun()
+    if st.button("🔔", key=bell_key, help="이상치 알림", use_container_width=True):
+        if alert_active:
+            open_dialog("anomaly")
+            st.rerun()
 
 
 # ════════════════════════════════════════
@@ -1455,35 +1468,53 @@ def render_risk_card() -> None:
 
 
 def render_mini_sidebar_rail() -> None:
-    alert = st.session_state.get("anomaly_alert") or {}
-    alert_active = (
-        bool(alert.get("hold") or alert.get("has_anomaly"))
-        and st.session_state.show_anomaly_alert
-        and not st.session_state.anomaly_approved
-    )
-    alert_class = " mini-rail-alert"
+    alert_active = is_anomaly_alert_active()
+    notify_key = "mini_rail_notify_idle"
     if alert_active and not st.session_state.anomaly_checked:
-        alert_class += " blink"
-    if not alert_active:
-        alert_class = ""
+        notify_key = "mini_rail_notify_blink"
+    elif alert_active:
+        notify_key = "mini_rail_notify_static"
 
-    st.markdown(
-        f"""
-        <nav class="mini-sidebar-rail" aria-label="접힌 사이드바 빠른 메뉴">
-          <div class="mini-rail-top">
-            <a class="mini-rail-logo" href="?mini_action=open_sidebar" title="사이드바 열기" aria-label="사이드바 열기">🛡</a>
-            <a class="mini-rail-icon" href="?mini_action=new_chat" title="새 채팅" aria-label="새 채팅">＋</a>
-            <a class="mini-rail-icon" href="?mini_action=search" title="검색 / 사이드바 열기" aria-label="검색">⌕</a>
-            <a class="mini-rail-icon" href="?mini_action=recent" title="최근 항목 / 사이드바 열기" aria-label="최근 항목">◷</a>
-            <a class="mini-rail-icon{alert_class}" href="?mini_action=notify" title="이상치 알림" aria-label="이상치 알림">🔔</a>
-          </div>
-          <div class="mini-rail-bottom">
-            <a class="mini-rail-profile" href="?mini_action=profile" title="마이페이지" aria-label="마이페이지">닉</a>
-          </div>
-        </nav>
-        """,
-        unsafe_allow_html=True,
-    )
+    with st.container(key="mini_sidebar_rail"):
+        with st.container(key="mini_rail_top"):
+            if st.button("‹", key="mini_rail_logo", help="홈 / 사이드바 토글", use_container_width=True):
+                close_dialogs()
+                close_anomaly_dialog()
+                st.session_state.page = "chat"
+                st.rerun()
+
+            if st.button("＋", key="mini_rail_new_chat", help="새 채팅", use_container_width=True):
+                reset_chat_state()
+                st.rerun()
+
+            if st.button("⌕", key="mini_rail_search", help="대화 검색", use_container_width=True):
+                close_dialogs()
+                close_anomaly_dialog()
+                st.session_state.page = "chat"
+                st.rerun()
+
+            if st.button("◷", key="mini_rail_recent", help="최근 항목", use_container_width=True):
+                recent_prompt = st.session_state.chat_history[0] if st.session_state.chat_history else ""
+                if recent_prompt:
+                    run_recent_chat_prompt(recent_prompt)
+                else:
+                    reset_chat_state()
+                st.rerun()
+
+            if st.button("🔔", key=notify_key, help="이상치 알림", use_container_width=True):
+                close_dialogs()
+                if alert_active:
+                    open_dialog("anomaly")
+                st.rerun()
+
+        st.markdown('<div class="mini-rail-fill" aria-hidden="true"></div>', unsafe_allow_html=True)
+
+        with st.container(key="mini_rail_bottom"):
+            if st.button("닉", key="mini_rail_profile", help="마이페이지", use_container_width=True):
+                close_dialogs()
+                close_anomaly_dialog()
+                st.session_state.page = "mypage"
+                st.rerun()
 
 
 # ════════════════════════════════════════
@@ -1837,7 +1868,6 @@ def render_bill_table(category: str, period: str) -> None:
 
 def main() -> None:
     init_state()
-    handle_mini_rail_action()
     st.markdown(CSS, unsafe_allow_html=True)
     render_mini_sidebar_rail()
     render_sidebar()
