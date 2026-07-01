@@ -1,13 +1,17 @@
 from html import escape
-
 import pandas as pd
 import streamlit as st
 
 
-BRAND_NAME = "GreenGuard Pay"
-BRAND_AI = "GreenGuard Pay AI"
+def get_ai_response(prompt: str) -> str:
+    # 데이터 연동 필요: 추후 LLM 백엔드와 연결할 위치입니다.
+    return f"[데모 답변] 입력하신 '{prompt}'에 대한 정밀 분석 결과입니다. 청구 금액이 평소 납부액 대비 약 10배 폭증했으며, 고지서 상 주소지가 '청계천로 100'이나 청구 기관 등록 주소와 불일치하는 정황이 포착되었습니다. 자동이체 승인 보류를 추천해 드립니다."
 
-# 데이터 연동 필요: 실제 사용자/요금/고지서 데이터는 추후 백엔드와 연결합니다.
+
+BRAND_NAME = "BlueGuard Pay"
+BRAND_AI = "BlueGuard Pay AI"
+
+# 프로필 필드 정의
 PROFILE_FIELDS = [
     {"label": "이름", "key": "name", "default": "김그린"},
     {"label": "전화번호", "key": "phone", "default": "010-1234-5678"},
@@ -37,712 +41,502 @@ BILL_DATA = {
     },
 }
 
-
 st.set_page_config(
     page_title=f"{BRAND_NAME} Beta",
-    page_icon="G",
+    page_icon="🛡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-
+# 세련되고 깔끔한 화이트/블루 CSS 테마 + 마이페이지 스타일 + 파일 업로드 & 히스토리 리팩토링 CSS
 CSS = """
 <style>
-:root {
-  --bg: #f3f7fd;
-  --surface: #ffffff;
-  --surface-soft: #f8fbff;
-  --line: #dce7f7;
-  --line-strong: #b9cbea;
-  --text: #0f172a;
-  --muted: #64748b;
-  --blue: #1d4ed8;
-  --blue2: #3b82f6;
-  --green: #2f6f73;
-  --safe-bg: #eaf4f3;
-  --danger: #b64a42;
-  --danger-bg: #fff1ef;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap');
+
+* {
+  font-family: 'Noto Sans KR', sans-serif;
+  box-sizing: border-box;
 }
 
-.stApp {
-  background: linear-gradient(180deg, #f9fbff 0%, #f3f7fd 45%, #eef6f5 100%);
-  color: var(--text);
-}
-
-[data-testid="stHeader"] {
-  background: transparent;
+html, body,
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] > .main {
+  background: #FFFFFF !important;
+  color: #0D1117;
 }
 
 [data-testid="stSidebar"] {
-  background: rgba(255, 255, 255, 0.94);
-  border-right: 1px solid var(--line);
-  box-shadow: 10px 0 28px rgba(29, 78, 216, 0.06);
+  background: #F8F9FC !important;
+  border-right: 1px solid #E8EBF2 !important;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+  padding: 0 !important;
 }
 
 [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-  gap: 0.72rem;
+  min-height: calc(100vh - 24px);
 }
 
-.block-container {
+[data-testid="stAppViewContainer"] > .main > .block-container {
   max-width: 1160px;
   padding: 2.45rem 2.2rem 5.5rem;
 }
 
-[data-testid="stVerticalBlock"] {
-  gap: 0.82rem;
+#MainMenu, footer, header { visibility: hidden; }
+[data-testid="stToolbar"] { display: none; }
+
+/* 입력창 디자인 */
+[data-testid="stTextInput"] {
+  margin-bottom: 0 !important;
 }
 
-[data-testid="column"] {
-  min-width: 0;
+[data-testid="stTextInput"] [data-baseweb="input"] {
+  min-height: 46px !important;
+  border: 1px solid #D7E2F5 !important;
+  border-radius: 24px !important;
+  background: #F8F9FC !important;
+  box-shadow: none !important;
+  outline: none !important;
+  overflow: hidden !important;
 }
 
-div[data-testid="stForm"] {
-  border: 0;
-  padding: 0;
-  background: transparent;
+[data-testid="stTextInput"] [data-baseweb="input"]:focus-within {
+  border-color: #BFD0FF !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+  outline: none !important;
 }
 
-div[data-testid="stForm"] [data-testid="stVerticalBlock"] {
-  gap: 0;
+[data-testid="stTextInput"] [data-baseweb="input"] > div,
+[data-testid="stTextInput"] [data-baseweb="input"] > div:focus,
+[data-testid="stTextInput"] [data-baseweb="input"] > div:focus-within {
+  border: 0 !important;
+  border-radius: inherit !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 !important;
 }
 
-div[data-testid="stTextInput"] {
-  margin-bottom: 0;
+[data-testid="stTextInput"] input,
+[data-testid="stTextInput"] input:focus {
+  min-height: 44px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 0 18px !important;
+  color: #0D1117 !important;
+  font-size: 15px !important;
 }
 
-div[data-testid="stMarkdownContainer"] p {
-  margin-bottom: 0;
+[data-testid="stSidebar"] [data-testid="stTextInput"] [data-baseweb="input"] {
+  border-color: #CFE0FF !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06) !important;
 }
 
-.element-container {
-  margin-bottom: 0;
+/* 둥근 아이콘 버튼 스타일 */
+[data-testid="stButton"] button,
+[data-testid="stButton"] > button,
+button {
+  border-radius: 24px !important;
+  border: 1px solid #C7D2FE !important;
+  background: #EEF2FF !important;
+  color: #2563EB !important;
+  font-weight: 700 !important;
+  min-height: 40px;
+  box-shadow: none !important;
+  outline: none !important;
+  transition: all 0.15s !important;
+}
+[data-testid="stButton"] button:hover,
+[data-testid="stButton"] > button:hover,
+button:hover {
+  background: #E0E7FF !important;
+  border-color: #2563EB !important;
+}
+[data-testid="stButton"] button:focus,
+[data-testid="stButton"] > button:focus,
+button:focus {
+  border-color: #9DB8FF !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08) !important;
+  outline: none !important;
 }
 
-.stButton,
-.stFormSubmitButton {
-  width: 100%;
-}
-
-.stButton > button,
-.stFormSubmitButton > button {
-  width: 100%;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px;
-  line-height: 1.2 !important;
-  padding: 0 0.95rem !important;
-}
-
-button[kind="primary"],
-button[kind="secondary"],
-.stButton > button,
-.stFormSubmitButton > button {
-  border-radius: 8px !important;
-  border: 1px solid var(--line) !important;
-  background: #ffffff !important;
-  color: var(--text) !important;
-  font-weight: 850 !important;
-  min-height: 46px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
-  white-space: nowrap;
-}
-
+/* 새 채팅 & 돋보이는 동작 전용 블루 버튼 스타일 */
+.new-chat-btn [data-testid="stButton"] > button,
+.new-chat-btn [data-testid="stButton"] button,
 button[kind="primary"] {
-  border: 0 !important;
-  background: linear-gradient(135deg, var(--blue), var(--blue2)) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18) !important;
+  border-radius: 8px !important;
+  border: none !important;
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+}
+.new-chat-btn [data-testid="stButton"] > button:hover,
+.new-chat-btn [data-testid="stButton"] button:hover,
+button[kind="primary"]:hover {
+  background: #1D4ED8 !important;
+  color: #FFFFFF !important;
 }
 
-.stButton > button:hover,
-.stFormSubmitButton > button:hover {
-  border-color: #9fc3f7 !important;
-  color: var(--blue) !important;
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.11);
+/* 돌아가기 및 보조 버튼 */
+.back-btn [data-testid="stButton"] > button {
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #6B7280 !important;
+  border: 1px solid #E2E6F0 !important;
+  font-size: 13px !important;
 }
 
-.stButton > button:focus,
-.stFormSubmitButton > button:focus {
-  border-color: #9fc3f7 !important;
-  color: var(--blue) !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.16), 0 12px 24px rgba(29, 78, 216, 0.11) !important;
+/* 파일 업로드 기본 위젯은 데모 화면에서 사용하지 않습니다. */
+[data-testid="stFileUploader"],
+[data-testid="stFileUploadDropzone"],
+[data-testid="uploadedFileData"] {
+  display: none !important;
 }
 
-button[kind="primary"]:focus {
-  color: #ffffff !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18), 0 12px 24px rgba(29, 78, 216, 0.18) !important;
+.chat-input-shell {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-top: 20px;
 }
 
-[data-testid="stSidebar"] .stButton:first-of-type > button,
-.stFormSubmitButton > button {
-  border: 0 !important;
-  background: linear-gradient(135deg, var(--blue), var(--blue2)) !important;
-  color: #ffffff !important;
-  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.2);
-  transform: translateY(7px);
+.chat-attach-note {
+  max-width: 760px;
+  margin: 8px auto 0;
 }
 
-div[data-testid="stTextInput"] input,
-div[data-testid="stNumberInput"] input {
-  min-height: 46px;
-  border-radius: 8px;
-  border-color: var(--line);
-  background: var(--surface-soft);
-  color: var(--text);
-  font-weight: 750;
-  padding: 0 14px;
+/* 말풍선 디자인 */
+.bubble-ai {
+  background: #FFFFFF;
+  border: 1px solid #E8EBF2;
+  border-radius: 4px 16px 16px 16px;
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #1A1A2E;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  margin-bottom: 4px;
+  text-align: left;
 }
-
-.brand-row {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-height: 42px;
-  margin: 2px 0 16px;
+.bubble-user {
+  background: #2563EB;
+  border-radius: 16px 4px 16px 16px;
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #FFFFFF;
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
 }
-
-.brand-symbol {
-  position: relative;
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border-radius: 16px 16px 16px 6px;
-  background: linear-gradient(135deg, var(--blue), var(--blue2));
-  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.22);
-}
-
-.brand-symbol::after {
-  position: absolute;
-  right: 7px;
-  bottom: 5px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #ffffff;
-  content: "";
-}
-
-.brand-shield {
-  width: 16px;
-  height: 19px;
-  border: 2px solid rgba(255, 255, 255, 0.95);
-  border-top-width: 3px;
-  border-radius: 8px 8px 10px 10px;
-  transform: translateY(-1px);
-}
-
-.brand-name {
-  color: var(--text);
-  font-size: 17px;
-  font-weight: 900;
-}
-
-.side-label,
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--green);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.recent-note {
-  margin: 4px 0 14px;
-  color: #7c8ba1;
-  font-size: 13px;
-}
-
-.hero-wrap {
-  display: flex;
-  min-height: calc(100vh - 300px);
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.hero-card {
-  width: min(920px, 100%);
-  padding: 22px 16px;
-}
-
-.hero-title {
-  margin: 8px 0;
-  color: var(--text);
-  font-size: clamp(38px, 5vw, 58px);
-  font-weight: 950;
-  letter-spacing: 0;
-}
-
-.hero-subtitle {
-  margin: 0;
-  color: #475569;
-  font-size: 18px;
-}
-
 .user-bubble-wrap {
   display: flex;
   justify-content: flex-end;
-  margin: 30px auto 18px;
+  margin: 15px auto;
   width: min(760px, 100%);
 }
+.ai-bubble-wrap {
+  display: flex;
+  justify-content: flex-start;
+  margin: 15px auto;
+  width: min(760px, 100%);
+}
+.msg-label { font-size: 11px; color: #9CA3AF; font-weight: 600; margin-bottom: 5px; text-align: left; }
+.msg-label-right { font-size: 11px; color: #9CA3AF; font-weight: 600; margin-bottom: 5px; text-align: right; }
 
-.user-bubble {
-  max-width: min(580px, 88%);
-  border-radius: 18px 18px 4px 18px;
-  background: var(--blue);
-  color: #ffffff;
-  padding: 13px 17px;
-  box-shadow: 0 12px 20px rgba(29, 78, 216, 0.16);
+/* 최근 대화 히스토리 아이템 디자인 스타일링 */
+.recent-history-container {
+  padding: 0 10px;
+  margin-top: 10px;
+}
+.recent-label {
+  padding: 0 4px 10px;
+  color: #9CA3AF;
+  font-size: 12px;
   font-weight: 800;
+  letter-spacing: 0;
+}
+.recent-history-container [data-testid="stButton"] button,
+.recent-history-container [data-testid="stButton"] > button,
+[class*="st-key-history_item_"] [data-testid="stButton"] button,
+[class*="st-key-history_item_"] [data-testid="stButton"] > button {
+  border: none !important;
+  background: transparent !important;
+  color: #334155 !important;
+  font-weight: 650 !important;
+  font-size: 14px !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  padding: 8px 6px !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  transition: all 0.2s !important;
+}
+.recent-history-container [data-testid="stButton"] button:hover,
+.recent-history-container [data-testid="stButton"] > button:hover,
+[class*="st-key-history_item_"] [data-testid="stButton"] button:hover,
+[class*="st-key-history_item_"] [data-testid="stButton"] > button:hover {
+  background: #EEF4FF !important;
+  color: #2563EB !important;
+}
+.recent-history-container [data-testid="stButton"] button p,
+[class*="st-key-history_item_"] [data-testid="stButton"] button p {
+  width: 100%;
+  text-align: left;
+}
+.sidebar-data-note {
+  padding: 6px 14px 0;
+  color: #C4CAD6;
+  font-size: 12px;
+  font-weight: 650;
 }
 
+/* 웰컴 화면 */
+.welcome-screen {
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+.welcome-label { font-size: 13px; color: #2563EB; font-weight: 700; margin-bottom: 16px; letter-spacing: 0.05em; }
+.welcome-title { font-size: 42px; font-weight: 800; color: #0D1117; margin-bottom: 12px; text-align: center; letter-spacing: -1px; }
+.welcome-sub { font-size: 15px; color: #6B7280; text-align: center; }
+
+/* 프로필 및 마이페이지 카드 */
+.card-box {
+  background: #FFFFFF;
+  border: 1px solid #E8EBF2;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+.mypage-name { font-size: 24px; font-weight: 700; color: #0D1117; }
+.mypage-role { font-size: 13px; color: #9CA3AF; margin-top: 3px; }
+.avatar-lg {
+  width: 68px; height: 68px; border-radius: 50%;
+  background: #EEF2FF; border: 3px solid #C7D2FE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: #2563EB;
+}
+.section-title {
+  font-size: 12px; font-weight: 700; color: #9CA3AF;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px;
+}
+.info-input {
+  width: 100%; border: none; border-bottom: 1.5px solid #E2E6F0;
+  padding: 10px 4px; font-size: 15px; color: #374151;
+  background: transparent; outline: none; margin-bottom: 8px;
+}
+.info-input:focus { border-bottom-color: #2563EB; }
+.transfer-tag {
+  display: flex; align-items: center;
+  background: #EEF2FF; border: 1px solid #C7D2FE;
+  border-radius: 20px; padding: 8px 18px;
+  font-size: 14px; color: #2563EB; font-weight: 500;
+  margin-bottom: 8px; cursor: pointer;
+}
+.add-tag {
+  border: 1.5px dashed #C7D2FE; border-radius: 20px;
+  padding: 8px 18px; font-size: 13px; color: #9CA3AF;
+  text-align: center; cursor: pointer;
+}
+
+/* 위험 고지(Risk Card) 리디자인 */
 .risk-card {
   width: min(760px, 100%);
-  margin: 0 auto 28px;
-  border: 1px solid #f6cbc5;
-  border-radius: 8px;
-  background: #fffafa;
+  margin: 20px auto;
+  border: 1px solid #FFCDD2;
+  border-radius: 14px;
+  background: #FFEBEE;
   padding: 22px;
-  box-shadow: 0 16px 34px rgba(217, 106, 94, 0.12);
+  box-shadow: 0 8px 24px rgba(211, 47, 47, 0.06);
 }
-
-.risk-card-header,
-.graph-header {
+.risk-card-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  margin-bottom: 12px;
 }
-
 .pill {
   display: inline-flex;
-  min-height: 30px;
+  min-height: 28px;
   align-items: center;
   border-radius: 999px;
   padding: 0 12px;
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 700;
 }
-
-.risk-level {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
-.risk-status {
-  background: var(--blue);
-  color: #ffffff;
-}
-
-.safe-chip {
-  background: var(--safe-bg);
-  color: var(--green);
-}
-
+.risk-level { background: #D32F2F; color: #FFFFFF; }
+.risk-status { background: #1976D2; color: #FFFFFF; }
+.safe-chip { background: #E3F2FD; color: #1976D2; }
 .risk-message {
-  margin: 18px 0;
-  color: #172033;
-  font-size: 18px;
-  font-weight: 850;
-  line-height: 1.65;
+  margin: 12px 0;
+  color: #2C3E50;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: left;
 }
-
 .tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 12px;
 }
-
 .risk-tag {
-  border: 1px solid #ffd7d1;
+  border: 1px solid #FFCDD2;
   border-radius: 999px;
-  background: var(--danger-bg);
-  color: #9f413a;
-  padding: 7px 11px;
-  font-size: 13px;
-  font-weight: 850;
+  background: #FFFFFF;
+  color: #C62828;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 700;
 }
-
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
-
 .detail-box {
-  border: 1px solid #f6e1de;
+  border: 1px solid #FFCDD2;
   border-radius: 8px;
-  background: #ffffff;
-  padding: 13px;
+  background: #FFFFFF;
+  padding: 12px;
+  text-align: left;
 }
+.detail-box strong { display: block; color: #C62828; font-size: 12px; }
+.detail-box span { display: block; margin-top: 4px; color: #374151; font-size: 13px; }
 
-.detail-box strong {
-  display: block;
-  color: var(--danger);
-  font-size: 13px;
-}
-
-.detail-box span {
-  display: block;
-  margin-top: 3px;
-  color: #334155;
-  font-size: 14px;
-}
-
-.profile-header-card {
-  min-height: 238px;
-  display: flex;
-  align-items: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-  padding: 30px 34px;
-  box-shadow: 0 18px 40px rgba(29, 78, 216, 0.09);
-  margin: 0 0 24px;
-}
-
-.profile-identity {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  width: 100%;
-}
-
-.large-avatar {
-  display: grid;
-  width: 72px;
-  height: 72px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--safe-bg);
-  color: var(--green);
-  font-size: 33px;
-  font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(47, 111, 115, 0.12);
-}
-
-.profile-title {
-  margin: 2px 0 8px;
-  color: var(--text);
-  font-size: clamp(30px, 4vw, 44px);
-  font-weight: 950;
-  letter-spacing: 0;
-}
-
-.profile-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.meta-box {
-  min-width: 168px;
-  min-height: 68px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-radius: 8px;
-  background: var(--bg);
-  padding: 11px 13px;
-}
-
-.meta-box dt {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 850;
-}
-
-.meta-box dd {
-  margin: 3px 0 0;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.graph-card {
-  min-height: 560px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-  padding: 28px;
-  box-shadow: 0 18px 40px rgba(29, 78, 216, 0.09);
-}
-
-[data-testid="stVerticalBlockBorderWrapper"] {
-  border: 1px solid var(--line) !important;
-  border-radius: 8px !important;
-  background: #ffffff !important;
-  box-shadow: 0 18px 40px rgba(29, 78, 216, 0.09);
-}
-
-[data-testid="stVerticalBlockBorderWrapper"] [data-testid="stVerticalBlock"] {
-  gap: 0.95rem;
-}
-
-.graph-title {
-  margin: 4px 0 0;
-  color: var(--text);
-  font-size: 24px;
-  font-weight: 950;
-}
-
-.graph-header {
-  align-items: center;
-  margin-bottom: 16px;
-}
-
+/* 지출 리포트 리얼 SVG 그래프 스타일 */
 .graph-placeholder {
   position: relative;
-  height: 310px;
+  height: 240px;
   margin-top: 18px;
   overflow: hidden;
-  border: 1px dashed var(--line-strong);
-  border-radius: 8px;
-  background:
-    linear-gradient(#e8f1fc 1px, transparent 1px) 0 0 / 100% 25%,
-    linear-gradient(180deg, #fbfdff 0%, #f3f7fd 100%);
+  border: 1px solid #E8EBF2;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8F9FC 100%);
   padding: 16px;
 }
-
-.graph-svg {
-  width: 100%;
-  height: 100%;
-}
-
-.graph-grid-line {
-  stroke: #dce7f7;
-  stroke-dasharray: 6 10;
-  stroke-linecap: round;
-  stroke-width: 2;
-}
-
-.graph-axis-line {
-  stroke: #c8d8ef;
-  stroke-width: 2;
-}
-
-.graph-dotted-line {
-  fill: none;
-  filter: drop-shadow(0 8px 12px rgba(29, 78, 216, 0.15));
-  stroke: var(--blue);
-  stroke-dasharray: 12 14;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 5;
-}
-
-.graph-point {
-  fill: #ffffff;
-  stroke: var(--green);
-  stroke-width: 5;
-}
-
+.graph-svg { width: 100%; height: 100%; }
+.graph-grid-line { stroke: #F0F2F5; stroke-dasharray: 4 6; stroke-width: 1.5; }
+.graph-axis-line { stroke: #E2E6F0; stroke-width: 2; }
+.graph-dotted-line { fill: none; stroke: #2563EB; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+.graph-point { fill: #FFFFFF; stroke: #2563EB; stroke-width: 4; }
 .graph-data-note {
   position: absolute;
-  z-index: 2;
-  top: 50%;
-  left: 50%;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--muted);
-  padding: 9px 14px;
-  font-weight: 900;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-  white-space: nowrap;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #E2E6F0;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #9CA3AF;
+  padding: 2px 8px;
 }
 
-.metric-card {
-  min-height: 92px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-  padding: 16px;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
-}
-
-.metric-label {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 850;
-}
-
-.metric-value {
-  margin-top: 4px;
-  color: var(--text);
-  font-size: 22px;
-  font-weight: 950;
-}
-
-.notice-box {
-  border: 1px dashed var(--line-strong);
-  border-radius: 8px;
-  background: var(--surface-soft);
-  color: var(--muted);
-  padding: 14px 16px;
-  font-weight: 850;
-  text-align: center;
-}
-
-.feature-item {
-  display: flex;
-  min-height: 54px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--text);
-  padding: 0 14px;
-  margin: 10px 0;
-}
-
-.feature-item strong {
-  color: var(--text);
-}
-
-.feature-item small {
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.data-caption {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 850;
-}
-
-.profile-action-offset {
-  height: 54px;
-}
-
-.bill-action-offset {
-  display: none;
-}
-
-.element-container:has(.bill-action-offset) {
+/* 미니 프로필 */
+.element-container:has(.sidebar-profile-anchor) {
   height: 0 !important;
   min-height: 0 !important;
-  margin: 0 !important;
+  margin-top: auto !important;
   padding: 0 !important;
   overflow: hidden !important;
 }
-
-.element-container:has(.bill-action-offset) + .element-container {
-  margin-top: clamp(112px, 13vh, 152px) !important;
+.sidebar-profile-anchor {
+  display: none;
+}
+.sidebar-profile-rule {
+  height: 1px;
+  background: #E5EAF3;
+  margin: 14px 12px 14px;
+}
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 0 0 2px;
+  min-height: 48px;
+}
+.avatar-sm {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #EEF2FF; border: 2px solid #C7D2FE;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #2563EB; font-weight: 700; flex-shrink: 0;
+}
+.profile-name { font-size: 15px; font-weight: 800; color: #1F2937; text-align: left; line-height: 1.25; }
+.profile-sub { margin-top: 3px; font-size: 12px; color: #9CA3AF; text-align: left; line-height: 1.25; }
+.profile-icon-button [data-testid="stButton"] button,
+.profile-icon-button [data-testid="stButton"] > button,
+.st-key-to_mypage [data-testid="stButton"] button,
+.st-key-to_mypage [data-testid="stButton"] > button {
+  width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 1px solid #C7D2FE !important;
+  background: #EEF2FF !important;
+  color: #4C3F91 !important;
+  box-shadow: none !important;
+}
+.profile-icon-button [data-testid="stButton"] button:hover,
+.profile-icon-button [data-testid="stButton"] > button:hover,
+.st-key-to_mypage [data-testid="stButton"] button:hover,
+.st-key-to_mypage [data-testid="stButton"] > button:hover {
+  background: #E0E7FF !important;
+  border-color: #9DB8FF !important;
 }
 
+.attached-file-note {
+  font-size: 12px;
+  color: #2563EB;
+  font-weight: 600;
+  margin-top: 6px;
+  padding-left: 10px;
+  text-align: left;
+}
+
+/* 메트릭 카드 디자인 */
+.metric-card {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid #E8EBF2;
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+}
+.metric-label { color: #6B7280; font-size: 12px; font-weight: 600; }
+.metric-value { margin-top: 4px; color: #0D1117; font-size: 18px; font-weight: 800; }
+
+/* 다이얼로그 모달 스타일 */
 div[data-testid="stDialog"] div[role="dialog"] {
-  border: 1px solid rgba(159, 195, 247, 0.28);
   border-radius: 14px;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.22), transparent 34%),
-    linear-gradient(180deg, #0f172a 0%, #172554 100%);
-  color: #eaf2ff;
-  box-shadow: 0 34px 90px rgba(15, 23, 42, 0.42);
+  background: #FFFFFF !important;
+  color: #0D1117 !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  padding: 24px !important;
 }
-
 div[data-testid="stDialog"] h2,
 div[data-testid="stDialog"] h3,
 div[data-testid="stDialog"] p,
 div[data-testid="stDialog"] label {
-  color: #eaf2ff !important;
-}
-
-div[data-testid="stDialog"] small,
-div[data-testid="stDialog"] [data-testid="stCaptionContainer"] {
-  color: #b8c7e5 !important;
-}
-
-div[data-testid="stDialog"] input {
-  min-height: 46px;
-  border: 1px solid rgba(159, 195, 247, 0.32) !important;
-  border-radius: 8px !important;
-  background: rgba(15, 23, 42, 0.62) !important;
-  color: #eef6ff !important;
-  font-weight: 850;
-  letter-spacing: 0;
-}
-
-div[data-testid="stDialog"] .stButton > button,
-div[data-testid="stDialog"] .stFormSubmitButton > button {
-  border-color: rgba(159, 195, 247, 0.35) !important;
-}
-
-.privacy-status {
-  border: 1px solid rgba(159, 195, 247, 0.26);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 14px 16px;
-  margin: 12px 0 14px;
-  color: #dbeafe;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.mask-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 12px 0 16px;
-}
-
-.mask-preview {
-  min-height: 68px;
-  border: 1px solid rgba(159, 195, 247, 0.24);
-  border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
-    rgba(15, 23, 42, 0.4);
-  padding: 11px 12px;
-  margin-bottom: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
-.mask-preview span {
-  display: block;
-  color: #93a9ce;
-  font-size: 12px;
-  font-weight: 850;
-}
-
-.mask-preview strong {
-  display: block;
-  margin-top: 5px;
-  overflow-wrap: anywhere;
-  color: #f8fbff;
-  font-size: 15px;
-  font-weight: 900;
-  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.16));
-}
-
-@media (max-width: 700px) {
-  .detail-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .mask-preview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-identity,
-  .graph-header {
-    flex-direction: column;
-  }
-
-  .element-container:has(.bill-action-offset) + .element-container {
-    margin-top: clamp(64px, 10vh, 96px) !important;
-  }
+  color: #0D1117 !important;
 }
 </style>
 """
@@ -750,7 +544,7 @@ div[data-testid="stDialog"] .stFormSubmitButton > button {
 
 def init_state() -> None:
     defaults = {
-        "current_view": "chat",
+        "page": "chat",
         "submitted_prompt": "",
         "show_risk_result": False,
         "selected_category": "수도요금",
@@ -759,6 +553,9 @@ def init_state() -> None:
         "feature_query": "",
         "open_info_dialog": False,
         "open_feature_dialog": False,
+        "attached_file": None,
+        "ai_response_text": "",
+        "chat_history": ["자동이체 이상 여부", "고지서 확인"]
     }
     for field in PROFILE_FIELDS:
         defaults[field["key"]] = field["default"]
@@ -803,174 +600,13 @@ def close_dialogs() -> None:
     st.session_state.open_feature_dialog = False
 
 
-def set_chat(reset: bool = False) -> None:
-    st.session_state.current_view = "chat"
+def reset_chat_state() -> None:
+    st.session_state.page = "chat"
+    st.session_state.submitted_prompt = ""
+    st.session_state.show_risk_result = False
+    st.session_state.ai_response_text = ""
+    st.session_state.attached_file = None
     close_dialogs()
-    if reset:
-        st.session_state.submitted_prompt = ""
-        st.session_state.show_risk_result = False
-
-
-def set_profile() -> None:
-    st.session_state.current_view = "profile"
-    close_dialogs()
-
-
-def render_brand() -> None:
-    st.markdown(
-        f"""
-        <div class="brand-row" aria-label="{safe_html(BRAND_NAME)}">
-          <span class="brand-symbol" aria-hidden="true"><span class="brand-shield"></span></span>
-          <span class="brand-name">{safe_html(BRAND_NAME)}</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_sidebar() -> None:
-    with st.sidebar:
-        render_brand()
-
-        st.text_input("대화 검색", placeholder="대화 검색", label_visibility="collapsed", key="conversation_search")
-
-        if st.button("+ 새 채팅", width="stretch"):
-            set_chat(reset=True)
-            st.rerun()
-
-        st.markdown('<p class="side-label">최근</p>', unsafe_allow_html=True)
-        if st.button("자동이체 이상 여부", width="stretch"):
-            st.session_state.submitted_prompt = "이번 달 자동이체 중 이상한 거 있어?"
-            st.session_state.show_risk_result = True
-            set_chat()
-            st.rerun()
-
-        if st.button("고지서 확인", width="stretch"):
-            st.session_state.submitted_prompt = "최근 고지서에서 위험한 납부 항목을 확인해줘"
-            st.session_state.show_risk_result = True
-            set_chat()
-            st.rerun()
-
-        st.markdown('<p class="recent-note">(데이터 연동 필요)</p>', unsafe_allow_html=True)
-
-        st.divider()
-
-        if st.button("닉네임 님\n(데이터 연동 필요)", width="stretch"):
-            set_profile()
-            st.rerun()
-
-
-def render_risk_card() -> None:
-    st.markdown(
-        """
-        <article class="risk-card">
-          <div class="risk-card-header">
-            <span class="pill risk-level">위험도 높음</span>
-            <span class="pill risk-status">이체 보류 권장</span>
-          </div>
-          <p class="risk-message">
-            수도요금 402,000원이 최근 평균보다 높고, 주소지 불일치 가능성이 있어 이체 보류가 필요합니다.
-          </p>
-          <div class="tag-row" aria-label="감지된 위험 요소">
-            <span class="risk-tag">주소지 불일치</span>
-            <span class="risk-tag">요금 폭증 감지</span>
-            <span class="risk-tag">(데이터 연동 필요)</span>
-          </div>
-          <div class="detail-grid">
-            <div class="detail-box">
-              <strong>감지 항목</strong>
-              <span>자동이체 예정 고지서</span>
-            </div>
-            <div class="detail-box">
-              <strong>권장 조치</strong>
-              <span>납부 전 주소와 청구처 확인</span>
-            </div>
-          </div>
-        </article>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_chat_input() -> None:
-    _, chat_col, _ = st.columns([0.75, 5.6, 0.75], gap="small")
-    with chat_col:
-        with st.form("chat_form", clear_on_submit=True):
-            input_col, send_col = st.columns([8, 1.2], vertical_alignment="bottom")
-            with input_col:
-                prompt = st.text_input(
-                    "질문 입력",
-                    placeholder="이번 달 자동이체 중 이상한 거 있어?",
-                    label_visibility="collapsed",
-                )
-            with send_col:
-                submitted = st.form_submit_button("전송", width="stretch")
-
-            if submitted and prompt.strip():
-                # 데이터 연동 필요: 추후 분석 API와 연결할 위치입니다.
-                st.session_state.submitted_prompt = prompt.strip()
-                st.session_state.show_risk_result = True
-                st.session_state.current_view = "chat"
-                st.rerun()
-
-
-def render_chat_home() -> None:
-    if not st.session_state.show_risk_result:
-        st.markdown(
-            f"""
-            <section class="hero-wrap">
-              <div class="hero-card">
-                <p class="eyebrow">{safe_html(BRAND_AI)}</p>
-                <h1 class="hero-title">무엇을 도와드릴까요?</h1>
-                <p class="hero-subtitle">돈이 빠져나가기 전, AI가 한 번 더 확인합니다.</p>
-              </div>
-            </section>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            f"""
-            <div class="hero-card" style="text-align:center; margin: 0 auto;">
-              <p class="eyebrow">{safe_html(BRAND_AI)}</p>
-              <h1 class="hero-title" style="font-size: clamp(32px, 4vw, 48px);">무엇을 도와드릴까요?</h1>
-              <p class="hero-subtitle">돈이 빠져나가기 전, AI가 한 번 더 확인합니다.</p>
-            </div>
-            <div class="user-bubble-wrap">
-              <div class="user-bubble">{safe_html(st.session_state.submitted_prompt)}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        render_risk_card()
-
-    render_chat_input()
-
-
-def render_profile_header() -> None:
-    profile_name = profile_value("name")
-    profile_title = f"{profile_name} 님" if not profile_name.startswith("(") else "닉네임 님"
-
-    st.markdown(
-        f"""
-        <section class="profile-header-card">
-          <div class="profile-identity">
-            <span class="large-avatar">G</span>
-            <div>
-              <p class="eyebrow">내 프로필</p>
-              <h1 class="profile-title">{safe_html(profile_title)}</h1>
-              <dl class="profile-meta">
-                <div class="meta-box"><dt>이름</dt><dd>{safe_html(profile_name)}</dd></div>
-                <div class="meta-box"><dt>전화번호</dt><dd>{safe_html(profile_value("phone"))}</dd></div>
-                <div class="meta-box"><dt>이메일</dt><dd>{safe_html(profile_value("email"))}</dd></div>
-                <div class="meta-box"><dt>주소</dt><dd>{safe_html(profile_value("address"))}</dd></div>
-              </dl>
-            </div>
-          </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def get_bill_labels(period: str) -> list[str]:
@@ -979,6 +615,7 @@ def get_bill_labels(period: str) -> list[str]:
     return [f"{month}월" for month in range(1, 7)]
 
 
+# 동적 SVG 리포트 지출 그래프 드로잉 함수
 def render_graph_svg(category: str, period: str) -> str:
     values = BILL_DATA[category][period]
     labels = get_bill_labels(period)
@@ -986,163 +623,66 @@ def render_graph_svg(category: str, period: str) -> str:
     min_value = min(values)
     max_value = max(values)
     span = max(max_value - min_value, 1)
-    x_start = 72
-    x_end = 648
+    
+    # SVG 캔버스 레이아웃 좌표 매핑
+    x_start = 50
+    x_end = 670
     x_positions = [x_start + ((x_end - x_start) / (count - 1)) * index for index in range(count)]
 
     points = []
-    for x_position, value in zip(x_positions, values):
-        y_position = 198 - ((value - min_value) / span) * 122
-        points.append((round(x_position, 1), round(y_position, 1)))
+    for x_pos, value in zip(x_positions, values):
+        # 160px 범위 내에서 점 플로팅 (SVG 상단 마진 30px 고려)
+        y_pos = 170 - ((value - min_value) / span) * 120
+        points.append((round(x_pos, 1), round(y_pos, 1)))
 
     point_attr = " ".join(f"{x},{y}" for x, y in points)
-    circles = "\n".join(f'<circle class="graph-point" cx="{x}" cy="{y}" r="8" />' for x, y in points)
+    circles = "\n".join(f'<circle class="graph-point" cx="{x}" cy="{y}" r="6" />' for x, y in points)
+    
     label_step = 1 if period == "6개월" else 2
     label_nodes = "\n".join(
-        f'<text x="{x}" y="258" text-anchor="middle" fill="#64748b" font-size="18" font-weight="800">{safe_html(label)}</text>'
+        f'<text x="{x}" y="215" text-anchor="middle" fill="#9CA3AF" font-size="11" font-weight="600">{safe_html(label)}</text>'
         for index, ((x, _), label) in enumerate(zip(points, labels))
         if index % label_step == 0
     )
 
     return f"""
     <div class="graph-placeholder">
-      <svg class="graph-svg" viewBox="0 0 720 280" role="img" aria-label="{safe_html(category)} 지출 그래프">
-        <line class="graph-grid-line" x1="48" y1="56" x2="672" y2="56" />
-        <line class="graph-grid-line" x1="48" y1="118" x2="672" y2="118" />
-        <line class="graph-grid-line" x1="48" y1="180" x2="672" y2="180" />
-        <line class="graph-axis-line" x1="48" y1="232" x2="672" y2="232" />
+      <div class="graph-data-note">데이터 연동 필요</div>
+      <svg class="graph-svg" viewBox="0 0 720 230">
+        <line class="graph-grid-line" x1="40" y1="50" x2="680" y2="50" />
+        <line class="graph-grid-line" x1="40" y1="110" x2="680" y2="110" />
+        <line class="graph-grid-line" x1="40" y1="170" x2="680" y2="170" />
+        <line class="graph-axis-line" x1="40" y1="195" x2="680" y2="195" />
         <polyline class="graph-dotted-line" points="{point_attr}" />
         {circles}
         {label_nodes}
       </svg>
-      <span class="graph-data-note">(데이터 연동 필요)</span>
     </div>
     """
 
 
-def render_bill_table(category: str, period: str) -> None:
-    labels = get_bill_labels(period)
-    values = BILL_DATA[category][period]
-    table = pd.DataFrame(
-        {
-            "기간": labels,
-            "요금": [f"{value:,}원" for value in values],
-            "상태": ["데모 데이터"] * len(values),
-        }
-    )
-    st.dataframe(table, width="stretch", hide_index=True)
-    st.caption("(데이터 연동 필요)")
-
-
-def render_profile_page() -> None:
-    header_col, action_col = st.columns([5.2, 1.15], gap="medium", vertical_alignment="top")
-    with header_col:
-        render_profile_header()
-    with action_col:
-        st.markdown('<div class="profile-action-offset"></div>', unsafe_allow_html=True)
-        if st.button("내 정보 수정", key="profile_open_info_dialog", width="stretch"):
-            st.session_state.open_feature_dialog = False
-            st.session_state.open_info_dialog = True
-            st.rerun()
-
-    left_col, right_col = st.columns([1.05, 2.85], gap="large")
-
-    with left_col:
-        st.markdown('<span class="bill-action-offset" aria-hidden="true"></span>', unsafe_allow_html=True)
-        for category in ["수도요금", "전기요금", "가스요금"]:
-            category_type = "primary" if st.session_state.selected_category == category else "secondary"
-            if st.button(category, key=f"category_{category}", type=category_type, width="stretch"):
-                close_dialogs()
-                st.session_state.selected_category = category
-                st.rerun()
-
-        if st.button("수정하기", key="profile_open_feature_dialog", width="stretch"):
-            st.session_state.open_info_dialog = False
-            st.session_state.open_feature_dialog = True
-            st.rerun()
-
-    with right_col:
-        with st.container(border=True):
-            st.markdown(
-                f"""
-                <div class="graph-header">
-                  <div>
-                    <p class="eyebrow">지출 리포트</p>
-                    <h2 class="graph-title">{safe_html(st.session_state.selected_category)} 지출 그래프</h2>
-                  </div>
-                  <span class="pill safe-chip">분석 대기</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            period_col_1, period_col_2, spacer = st.columns([1, 1, 5])
-            with period_col_1:
-                period_type = "primary" if st.session_state.selected_period == "6개월" else "secondary"
-                if st.button("6개월", key="period_6m", type=period_type, width="stretch"):
-                    close_dialogs()
-                    st.session_state.selected_period = "6개월"
-                    st.rerun()
-            with period_col_2:
-                period_type = "primary" if st.session_state.selected_period == "1년" else "secondary"
-                if st.button("1년", key="period_1y", type=period_type, width="stretch"):
-                    close_dialogs()
-                    st.session_state.selected_period = "1년"
-                    st.rerun()
-            with spacer:
-                st.markdown('<span class="data-caption">(데이터 연동 필요)</span>', unsafe_allow_html=True)
-
-            st.markdown(
-                render_graph_svg(st.session_state.selected_category, st.session_state.selected_period),
-                unsafe_allow_html=True,
-            )
-
-            values = BILL_DATA[st.session_state.selected_category][st.session_state.selected_period]
-            previous_average = sum(values[:-1]) / max(len(values[:-1]), 1)
-            latest = values[-1]
-            change = ((latest - previous_average) / previous_average * 100) if previous_average else 0
-
-            metric_1, metric_2, metric_3 = st.columns(3)
-            with metric_1:
-                st.markdown(
-                    f'<div class="metric-card"><div class="metric-label">최근 요금</div><div class="metric-value">{latest:,}원</div></div>',
-                    unsafe_allow_html=True,
-                )
-            with metric_2:
-                st.markdown(
-                    f'<div class="metric-card"><div class="metric-label">이전 평균</div><div class="metric-value">{previous_average:,.0f}원</div></div>',
-                    unsafe_allow_html=True,
-                )
-            with metric_3:
-                st.markdown(
-                    f'<div class="metric-card"><div class="metric-label">변동률</div><div class="metric-value">{change:+.1f}%</div></div>',
-                    unsafe_allow_html=True,
-                )
-
-            st.markdown("#### 요금 내역 표")
-            render_bill_table(st.session_state.selected_category, st.session_state.selected_period)
-
-
+# ════════════════════════════════════════
+# 다이얼로그 모달 내부 UI 렌더링
+# ════════════════════════════════════════
 def render_info_dialog_body() -> None:
-    st.caption("개인정보 보호")
+    st.caption("개인정보 보호 설정")
     st.subheader("내 정보 수정")
     st.markdown(
         """
-        <div class="privacy-status">
-          개인정보는 화면 표시 단계에서만 마스킹됩니다. 실제 저장 기능은 데모에서 비활성화되어 있습니다.
+        <div style="background:#F0F4FF; border:1px solid #C7D2FE; border-radius:8px; padding:12px; margin-bottom:15px; color:#2563EB; font-size:13px; line-height:1.5;">
+          화면 표시 단계에서 개인정보가 마스킹 처리됩니다. (실제 데이터 저장은 백엔드 연동이 필요합니다.)
         </div>
         """,
         unsafe_allow_html=True,
     )
     st.session_state.mask_strength = st.slider(
-        "마스킹 강도",
+        "마스킹 강도 (%)",
         min_value=10,
         max_value=80,
         step=10,
         value=st.session_state.mask_strength,
     )
 
-    # 데이터 연동 필요: 실제 개인정보 조회/저장 API 연결 예정
     preview_cols = st.columns(2, gap="small")
     for index, field in enumerate(PROFILE_FIELDS):
         current_value = profile_value(field["key"])
@@ -1150,9 +690,9 @@ def render_info_dialog_body() -> None:
         with preview_cols[index % 2]:
             st.markdown(
                 f"""
-                <div class="mask-preview">
-                  <span>{safe_html(field["label"])}</span>
-                  <strong>{safe_html(masked_value)}</strong>
+                <div style="border:1px solid #E2E6F0; border-radius:8px; padding:10px; margin-bottom:10px; background:#F8F9FC;">
+                  <span style="font-size:11px; color:#6B7280; font-weight:600;">{safe_html(field["label"])}</span>
+                  <strong style="display:block; margin-top:3px; color:#0D1117; font-size:13px;">{safe_html(masked_value)}</strong>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1164,24 +704,23 @@ def render_info_dialog_body() -> None:
             key=field["key"],
         )
 
-    st.caption("(데이터 연동 필요)")
-    if st.button("확인", key="close_info_dialog", width="stretch"):
-        # 데이터 연동 필요: 현재는 세션 상태에만 저장하고 추후 DB 저장 API와 연결합니다.
+    st.caption("(데이터 저장 시 백엔드 DB 연동 필요)")
+    if st.button("수정 완료", key="close_info_dialog", use_container_width=True):
         close_dialogs()
         st.rerun()
 
 
 def render_feature_dialog_body() -> None:
     st.caption(BRAND_NAME)
-    st.subheader("기능 추가")
+    st.subheader("새로운 보안 기능 추가")
     with st.form("feature_search_form"):
         st.text_input(
             "기능 검색",
-            placeholder="추가할 기능을 검색하세요",
+            placeholder="추가하고 싶은 보호 기능을 입력해 보세요.",
             label_visibility="collapsed",
             key="feature_query",
         )
-        st.form_submit_button("검색", width="stretch")
+        st.form_submit_button("기능 조회", use_container_width=True)
 
     query = st.session_state.feature_query.strip()
     filtered = [feature for feature in FEATURE_SUGGESTIONS if query in feature] if query else FEATURE_SUGGESTIONS
@@ -1190,17 +729,17 @@ def render_feature_dialog_body() -> None:
         for feature in filtered:
             st.markdown(
                 f"""
-                <div class="feature-item">
-                  <strong>{safe_html(feature)}</strong>
-                  <small>(데이터 연동 필요)</small>
+                <div style="display:flex; justify-content:between; align-items:center; border:1px solid #E8EBF2; border-radius:8px; padding:10px 14px; margin-bottom:8px;">
+                  <strong style="color:#0D1117; font-size:14px;">{safe_html(feature)}</strong>
+                  <span style="color:#2563EB; font-size:11px; font-weight:600; margin-left:auto;">연동 가능</span>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
     else:
-        st.markdown('<div class="notice-box">(데이터 연동 필요)</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:#9CA3AF; text-align:center; padding:15px; border:1px dashed #E2E6F0; border-radius:8px;">해당 보호 기능은 아직 개발 중입니다.</div>', unsafe_allow_html=True)
 
-    if st.button("닫기", key="close_feature_dialog", width="stretch"):
+    if st.button("다이얼로그 닫기", key="close_feature_dialog", use_container_width=True):
         close_dialogs()
         st.rerun()
 
@@ -1208,11 +747,9 @@ def render_feature_dialog_body() -> None:
 def render_dialogs() -> None:
     if st.session_state.open_info_dialog:
         if hasattr(st, "dialog"):
-
             @st.dialog("내 정보 수정")
             def info_dialog() -> None:
                 render_info_dialog_body()
-
             info_dialog()
         else:
             with st.expander("내 정보 수정", expanded=True):
@@ -1220,15 +757,380 @@ def render_dialogs() -> None:
 
     if st.session_state.open_feature_dialog:
         if hasattr(st, "dialog"):
-
-            @st.dialog("기능 추가")
+            @st.dialog("보안 기능 추가")
             def feature_dialog() -> None:
                 render_feature_dialog_body()
-
             feature_dialog()
         else:
-            with st.expander("기능 추가", expanded=True):
+            with st.expander("보안 기능 추가", expanded=True):
                 render_feature_dialog_body()
+
+
+# ════════════════════════════════════════
+# 1번째 파일의 분석 카드 기능 (디자인은 2번째 화이트 테마)
+# ════════════════════════════════════════
+def render_risk_card() -> None:
+    st.markdown(
+        """
+        <article class="risk-card">
+          <div class="risk-card-header">
+            <span class="pill risk-level">⚠️ 위험도 매우 높음</span>
+            <span class="pill risk-status">자동이체 보류 추천</span>
+          </div>
+          <p class="risk-message">
+            이번 달 수도요금이 <strong>402,000원</strong> 청구되어 최근 5개월 평균 대비 약 10배 폭증하였습니다. 또한 고지서 주소지와 청구처가 일치하지 않는 이상 징후가 확인되어 즉시 확인이 필요합니다.
+          </p>
+          <div class="tag-row" aria-label="감지된 위협 탐지 목록">
+            <span class="risk-tag">📍 주소지 불일치 의심</span>
+            <span class="risk-tag">📈 청구 금액 폭증 감지</span>
+            <span class="risk-tag">🔒 BlueGuard 분석 차단</span>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-box">
+              <strong>분석 탐지 대상</strong>
+              <span>자동이체 등록 수도요금 청구서</span>
+            </div>
+            <div class="detail-box">
+              <strong>스마트 추천 수칙</strong>
+              <span>고지기관 청구 번호 대조 및 납부 일시 보류</span>
+            </div>
+          </div>
+        </article>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ════════════════════════════════════════
+# 사이드바 레이아웃 (1번째의 기능 + 2번째의 깔끔한 디자인)
+# ════════════════════════════════════════
+def render_sidebar() -> None:
+    with st.sidebar:
+        # 상단 로고 (디자인 2 적용)
+        st.markdown("""
+        <div style="padding:24px 16px 12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:#2563EB;
+                            display:flex;align-items:center;justify-content:center;box-shadow: 0 4px 12px rgba(37,99,235,0.22);">
+                    <span style="color:white;font-size:16px;">🛡</span>
+                </div>
+                <span style="font-size:16px;font-weight:800;color:#0D1117;letter-spacing:-0.5px;">BlueGuard Pay</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 대화 검색 (디자인 2 적용)
+        st.text_input("대화 검색", placeholder="🔍 대화 내용 검색", label_visibility="collapsed", key="conversation_search")
+
+        # 새 채팅 버튼 (★1번 구조의 리셋 + 2번의 스타일)
+        st.markdown('<div class="new-chat-btn" style="margin: 4px 0 16px;">', unsafe_allow_html=True)
+        if st.button("＋  새 채팅", use_container_width=True):
+            reset_chat_state()
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # 최근 내역 Presets (CSS 커스텀 디자인을 적용하여 app.py 본래의 예쁜 목록형 단추 구현)
+        st.markdown('<div class="recent-history-container">', unsafe_allow_html=True)
+        st.markdown('<div class="recent-label">최근</div>', unsafe_allow_html=True)
+        
+        # chat_history에 있는 대화 목록들을 텍스트 형태의 세련된 단추로 렌더링
+        for idx, item in enumerate(st.session_state.chat_history):
+            if st.button(f"💬 {item}", use_container_width=True, key=f"history_item_{idx}"):
+                st.session_state.submitted_prompt = item
+                st.session_state.show_risk_result = True
+                st.session_state.page = "chat"
+                with st.spinner("지출 내역을 검증하는 중..."):
+                    st.session_state.ai_response_text = get_ai_response(item)
+                st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="sidebar-data-note">(데이터 연동 필요)</div>', unsafe_allow_html=True)
+
+        # 프로필 관리 및 마이페이지 전환 영역
+        if st.session_state.page == "mypage":
+            st.markdown('<div class="back-btn" style="margin-top: 8px;">', unsafe_allow_html=True)
+            if st.button("← 메인 채팅방으로", use_container_width=True):
+                st.session_state.page = "chat"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<span class="sidebar-profile-anchor" aria-hidden="true"></span>', unsafe_allow_html=True)
+        st.markdown('<div class="sidebar-profile-rule"></div>', unsafe_allow_html=True)
+        col_prof, col_btn = st.columns([4, 1.2])
+        with col_prof:
+            st.markdown(f"""
+            <div class="sidebar-profile">
+                <div class="avatar-sm">닉</div>
+                <div>
+                    <div class="profile-name">닉네임 님</div>
+                    <div class="profile-sub">데이터 연동 필요</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_btn:
+            # 프로필 아이콘 클릭 시 마이페이지로 즉시 이동
+            st.markdown('<div class="profile-icon-button">', unsafe_allow_html=True)
+            if st.button("👤", key="to_mypage"):
+                st.session_state.page = "mypage"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════
+# 챗 허브 홈 레이아웃 (디자인 2 적용)
+# ════════════════════════════════════════
+def render_chat_page() -> None:
+    if not st.session_state.show_risk_result:
+        # 환영 웰컴 화면 (디자인 2 적용)
+        st.markdown(
+            f"""
+            <section class="welcome-screen">
+              <div class="welcome-label">{safe_html(BRAND_AI)}</div>
+              <h1 class="welcome-title">무엇을 도와드릴까요?</h1>
+              <p class="welcome-sub">금융 범죄와 요금 사기, 돈이 빠져나가기 전에 AI가 먼저 완벽 검증합니다.</p>
+            </section>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        # 질문 대화 기록 말풍선 렌더링
+        st.markdown(
+            f"""
+            <div class="user-bubble-wrap">
+              <div style="max-width: 75%;">
+                <div class="msg-label-right">나</div>
+                <div class="bubble-user">{safe_html(st.session_state.submitted_prompt)}</div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        if st.session_state.ai_response_text:
+            st.markdown(
+                f"""
+                <div class="ai-bubble-wrap">
+                  <div style="max-width: 75%;">
+                    <div class="msg-label">{safe_html(BRAND_NAME)}</div>
+                    <div class="bubble-ai">{safe_html(st.session_state.ai_response_text)}</div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        # 위험 감지 결과 정밀 진단서 카드 로드
+        render_risk_card()
+
+    # 입력 컴포넌트 하단 바 배치
+    st.markdown('<div class="chat-input-shell">', unsafe_allow_html=True)
+    col_file, col_text = st.columns([0.7, 11.3], vertical_alignment="center")
+    
+    with col_file:
+        if st.button("＋", key="chat_attach_demo", help="파일 첨부 (데이터 연동 필요)", use_container_width=True):
+            # 데이터 연동 필요: 실제 파일 업로드는 추후 백엔드와 연결합니다.
+            st.session_state.attached_file = "파일 첨부 데모"
+
+    with col_text:
+        prompt_input = st.text_input(
+            "메시지 전송",
+            placeholder="이번 달 자동이체 지출 항목 중 의심스러운 고지서가 있어? (엔터키로 입력)",
+            label_visibility="collapsed",
+            key="chat_input"
+        )
+
+    if st.session_state.attached_file:
+        st.markdown(
+            f'<p class="attached-file-note chat-attach-note">📎 {safe_html(st.session_state.attached_file)} 상태입니다. (데이터 연동 필요)</p>',
+            unsafe_allow_html=True,
+        )
+
+    # 챗 전송 처리
+    if prompt_input:
+        final_prompt = prompt_input.strip()
+        if st.session_state.attached_file:
+            final_prompt += f" [첨부파일: {st.session_state.attached_file}]"
+            st.session_state.attached_file = None
+            
+        st.session_state.submitted_prompt = final_prompt
+        st.session_state.show_risk_result = True
+        
+        # 최근 항목에 검색어 추가 (중복 방지 및 15자 슬라이싱)
+        short_prompt = prompt_input[:15] + ("..." if len(prompt_input) > 15 else "")
+        if short_prompt not in st.session_state.chat_history:
+            st.session_state.chat_history.insert(0, short_prompt)
+            
+        with st.spinner("BlueGuard AI 알고리즘 실행 중..."):
+            st.session_state.ai_response_text = get_ai_response(final_prompt)
+        st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ════════════════════════════════════════
+# 마이페이지 레이아웃 (디자인 2 기반 구성)
+# ════════════════════════════════════════
+def render_mypage() -> None:
+    st.markdown('<div style="max-width:860px; margin: 0 auto;">', unsafe_allow_html=True)
+
+    # 마이페이지 헤더 카드 (디자인 2 적용)
+    profile_name = profile_value("name")
+    display_title = f"{profile_name} 님" if not profile_name.startswith("(") else "마이데이터 프로필"
+
+    st.markdown(f"""
+    <div class="card-box">
+        <div style="display:flex; align-items:center; gap:18px; margin-bottom:12px;">
+            <div class="avatar-lg">🛡</div>
+            <div>
+                <div class="mypage-name">{safe_html(display_title)}</div>
+                <div class="mypage-role">BlueGuard Pay 정회원 안심 지킴이 등급</div>
+            </div>
+        </div>
+        <hr style="border:none; border-top:1px solid #E8EBF2; margin: 15px 0;">
+        <div class="section-title">등록 프로필 관리 정보</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:15px;">
+            <div>
+                <label style="font-size:12px; color:#6B7280; font-weight:600;">성함</label>
+                <div style="padding: 8px 0; border-bottom:1.5px solid #E2E6F0; font-size:14px; color:#374151; font-weight:700;">
+                    {safe_html(profile_value("name"))}
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px; color:#6B7280; font-weight:600;">연락처</label>
+                <div style="padding: 8px 0; border-bottom:1.5px solid #E2E6F0; font-size:14px; color:#374151; font-weight:700;">
+                    {safe_html(profile_value("phone"))}
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px; color:#6B7280; font-weight:600;">이메일 주소</label>
+                <div style="padding: 8px 0; border-bottom:1.5px solid #E2E6F0; font-size:14px; color:#374151; font-weight:700;">
+                    {safe_html(profile_value("email"))}
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px; color:#6B7280; font-weight:600;">배송지 고지 주소</label>
+                <div style="padding: 8px 0; border-bottom:1.5px solid #E2E6F0; font-size:14px; color:#374151; font-weight:700;">
+                    {safe_html(profile_value("address"))}
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 내 정보 수정 클릭 시 1번 모달 호출 기능 유지
+    col_mod_btn1, col_mod_btn2, _ = st.columns([1.5, 1.5, 3])
+    with col_mod_btn1:
+        if st.button("👤 내 정보 마스킹 수정", use_container_width=True):
+            st.session_state.open_feature_dialog = False
+            st.session_state.open_info_dialog = True
+            st.rerun()
+    with col_mod_btn2:
+        if st.button("➕ 보안 알고리즘 연동", use_container_width=True):
+            st.session_state.open_info_dialog = False
+            st.session_state.open_feature_dialog = True
+            st.rerun()
+
+    # 지출 현황 및 리포트 (디자인 2 카드 레이아웃 배치)
+    col_left, col_right = st.columns([1, 2], gap="medium")
+
+    with col_left:
+        st.markdown("""
+        <div class="card-box" style="height: 100%;">
+            <div class="section-title">스마트 필터 탐지 항목</div>
+            <div class="transfer-tag">📋 수도 공과금</div>
+            <div class="transfer-tag">⚡ 한국전력공사 전기세</div>
+            <div class="transfer-tag">🔥 도시 가스 요금</div>
+            <div style="margin-top:15px;" class="add-tag">⊕ 더 많은 공과금 등록하기</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col_right:
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="display:flex; justify-content:between; align-items:center; margin-bottom:10px;">
+                  <div>
+                    <span style="font-size:12px; color:#9CA3AF; font-weight:700; text-transform:uppercase;">지출 분석 스마트 리포트</span>
+                    <h2 style="font-size:20px; font-weight:800; color:#0D1117; margin: 4px 0 0;">{safe_html(st.session_state.selected_category)} 안심 지출 트렌드</h2>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # 카테고리 필터 버튼 렌더링
+            cat_cols = st.columns(3)
+            categories = ["수도요금", "전기요금", "가스요금"]
+            for idx, cat in enumerate(categories):
+                with cat_cols[idx]:
+                    btn_type = "primary" if st.session_state.selected_category == cat else "secondary"
+                    if st.button(cat, use_container_width=True, key=f"cat_selector_{cat}", type=btn_type):
+                        st.session_state.selected_category = cat
+                        st.rerun()
+
+            # 기간 필터 버튼 렌더링
+            p_cols = st.columns([1, 1, 3])
+            with p_cols[0]:
+                p_type = "primary" if st.session_state.selected_period == "6개월" else "secondary"
+                if st.button("6개월", key="btn_p6m", type=p_type, use_container_width=True):
+                    st.session_state.selected_period = "6개월"
+                    st.rerun()
+            with p_cols[1]:
+                p_type = "primary" if st.session_state.selected_period == "1년" else "secondary"
+                if st.button("1년", key="btn_p1y", type=p_type, use_container_width=True):
+                    st.session_state.selected_period = "1년"
+                    st.rerun()
+            with p_cols[2]:
+                st.markdown('<p style="font-size:11px; color:#9CA3AF; text-align:right; margin-top:8px;">(한국공과금협회 실시간 조회 연동)</p>', unsafe_allow_html=True)
+
+            # 정밀 지출 SVG 차트 출력
+            st.markdown(
+                render_graph_svg(st.session_state.selected_category, st.session_state.selected_period),
+                unsafe_allow_html=True,
+            )
+
+            # 지출 통계 및 메트릭 데이터 출력
+            values = BILL_DATA[st.session_state.selected_category][st.session_state.selected_period]
+            previous_average = sum(values[:-1]) / max(len(values[:-1]), 1)
+            latest = values[-1]
+            change = ((latest - previous_average) / previous_average * 100) if previous_average else 0
+
+            m_cols = st.columns(3)
+            with m_cols[0]:
+                st.markdown(
+                    f'<div class="metric-card"><div class="metric-label">최근 납부 금액</div><div class="metric-value">{latest:,}원</div></div>',
+                    unsafe_allow_html=True,
+                )
+            with m_cols[1]:
+                st.markdown(
+                    f'<div class="metric-card"><div class="metric-label">이전 평균 요금</div><div class="metric-value">{previous_average:,.0f}원</div></div>',
+                    unsafe_allow_html=True,
+                )
+            with m_cols[2]:
+                sign = "+" if change > 0 else ""
+                st.markdown(
+                    f'<div class="metric-card"><div class="metric-label">요금 변동률</div><div class="metric-value" style="color:{"#D32F2F" if change > 20 else "#374151"};">{sign}{change:+.1f}%</div></div>',
+                    unsafe_allow_html=True,
+                )
+
+            # 데이터 테이블 바인딩
+            st.markdown("<h4 style='font-size:14px; font-weight:700; color:#0D1117; margin-top:20px;'>안심 납부 요금 내역 명세표</h4>", unsafe_allow_html=True)
+            render_bill_table(st.session_state.selected_category, st.session_state.selected_period)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+def render_bill_table(category: str, period: str) -> None:
+    labels = get_bill_labels(period)
+    values = BILL_DATA[category][period]
+    table = pd.DataFrame(
+        {
+            "납부 기준 월": labels,
+            "납부 요금 총액": [f"{value:,}원" for value in values],
+            "안심 보안 검증": ["안심 등급 정합성 확인" if v < sum(values[:-1])/len(values[:-1])*1.5 else "⚠️ 요금 과다 청구 감지됨" for v in values],
+        }
+    )
+    st.dataframe(table, use_container_width=True, hide_index=True)
 
 
 def main() -> None:
@@ -1236,10 +1138,10 @@ def main() -> None:
     st.markdown(CSS, unsafe_allow_html=True)
     render_sidebar()
 
-    if st.session_state.current_view == "profile":
-        render_profile_page()
+    if st.session_state.page == "mypage":
+        render_mypage()
     else:
-        render_chat_home()
+        render_chat_page()
 
     render_dialogs()
 
