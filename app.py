@@ -1063,6 +1063,63 @@ html, body,
   color: #0F172A;
   font-weight: 850;
 }
+.signup-prompt {
+  margin: 14px 0 8px;
+  text-align: center;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 750;
+}
+.st-key-open_signup_button [data-testid="stButton"] button {
+  min-height: 38px !important;
+  border-radius: 999px !important;
+  border: 1px solid #C7D7FF !important;
+  background: #F3F7FD !important;
+  color: #1D4ED8 !important;
+  box-shadow: none !important;
+  font-weight: 850 !important;
+}
+.st-key-open_signup_button [data-testid="stButton"] button:hover,
+.st-key-open_signup_button [data-testid="stButton"] button:focus,
+.st-key-open_signup_button [data-testid="stButton"] button:active {
+  border-color: #8FB2FF !important;
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.10) !important;
+}
+.st-key-open_signup_button [data-testid="stButton"] button *,
+.st-key-close_signup_dialog [data-testid="stButton"] button * {
+  color: inherit !important;
+}
+.signup-error,
+.signup-success {
+  margin: 12px 0 4px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.signup-error {
+  border: 1px solid #FFC9C2;
+  background: #FFF1EF;
+  color: #B8463B;
+}
+.signup-success {
+  border: 1px solid #B9DAD7;
+  background: #EAF4F3;
+  color: #2F6F73;
+}
+div[data-testid="stDialog"] [data-testid="stCheckbox"] label,
+div[data-testid="stDialog"] [data-testid="stCheckbox"] label *,
+div[data-testid="stDialog"] [data-testid="stCheckbox"] p {
+  color: #0F172A !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+div[data-testid="stDialog"] [data-testid="stTextInput"] input::placeholder {
+  color: #6B7280 !important;
+  opacity: 1 !important;
+}
 .permission-alert {
   width: min(760px, 100%);
   margin: 0 auto 16px;
@@ -1579,6 +1636,11 @@ def init_state() -> None:
         "currentUser": None,
         "login_error": "",
         "permission_message": "",
+        "open_signup_dialog": False,
+        "signup_error": "",
+        "signup_success": "",
+        "signup_prefill_email": "",
+        "temp_registered_users": {},
     }
     for field in PROFILE_FIELDS:
         defaults[field["key"]] = field["default"]
@@ -1617,7 +1679,36 @@ def mock_auth(email: str, password: str) -> dict | None:
             "name": TEMP_ADMIN_USER["name"],
             "role": TEMP_ADMIN_USER["role"],
         }
+
+    registered_users = st.session_state.get("temp_registered_users", {})
+    registered_user = registered_users.get(normalized_email) if isinstance(registered_users, dict) else None
+    if registered_user and registered_user.get("password") == password:
+        return {key: value for key, value in registered_user.items() if key != "password"}
+
     return None
+
+
+def register_user_mock(
+    email: str,
+    password: str,
+    name: str,
+    address: str,
+    marketing_opt_in: bool,
+) -> dict:
+    # 추후 DB insert/API 연동 위치: 실제 서비스에서는 비밀번호를 해시로 저장해야 합니다.
+    normalized_email = email.strip().lower()
+    user_record = {
+        "email": normalized_email,
+        "password": password,
+        "name": name.strip(),
+        "address": address.strip(),
+        "role": "user",
+        "marketing_opt_in": bool(marketing_opt_in),
+    }
+    if "temp_registered_users" not in st.session_state or not isinstance(st.session_state.temp_registered_users, dict):
+        st.session_state.temp_registered_users = {}
+    st.session_state.temp_registered_users[normalized_email] = user_record
+    return {key: value for key, value in user_record.items() if key != "password"}
 
 
 def current_user() -> dict:
@@ -1678,10 +1769,22 @@ def close_dialogs() -> None:
     st.session_state.open_info_dialog = False
     st.session_state.open_feature_dialog = False
     st.session_state.open_anomaly_dialog = False
+    st.session_state.open_signup_dialog = False
 
 
 def close_anomaly_dialog() -> None:
     st.session_state.open_anomaly_dialog = False
+
+
+def close_signup_dialog() -> None:
+    st.session_state.open_signup_dialog = False
+
+
+def open_signup_dialog() -> None:
+    close_dialogs()
+    st.session_state.signup_error = ""
+    st.session_state.signup_success = ""
+    st.session_state.open_signup_dialog = True
 
 
 def open_dialog(dialog_name: str) -> None:
@@ -1724,7 +1827,87 @@ def run_recent_chat_prompt(prompt: str) -> None:
     st.session_state.ai_response_text = get_ai_response(prompt)
 
 
+def render_signup_dialog_body() -> None:
+    st.caption(BRAND_NAME)
+    st.subheader("회원가입")
+    st.markdown(
+        '<p class="login-desc">필수 정보를 입력하면 데모 계정이 임시로 생성됩니다.</p>',
+        unsafe_allow_html=True,
+    )
+
+    with st.form("signup_form", clear_on_submit=False):
+        email = st.text_input("이메일", placeholder="사용할 이메일을 입력해주세요", key="signup_email")
+        password = st.text_input("비밀번호", placeholder="비밀번호를 입력하세요", type="password", key="signup_password")
+        password_confirm = st.text_input(
+            "비밀번호 확인",
+            placeholder="비밀번호를 다시 입력하세요",
+            type="password",
+            key="signup_password_confirm",
+        )
+        name = st.text_input("이름", placeholder="이름을 입력하세요", key="signup_name")
+        address = st.text_input("주소", placeholder="주소를 입력하세요", key="signup_address")
+
+        agree_privacy = st.checkbox("개인정보 수집 및 이용에 동의합니다.", key="signup_agree_privacy")
+        agree_terms = st.checkbox("서비스 이용약관에 동의합니다.", key="signup_agree_terms")
+        marketing_opt_in = st.checkbox("마케팅 정보 수신에 동의합니다.", key="signup_agree_marketing")
+
+        submitted = st.form_submit_button("회원가입 완료", use_container_width=True)
+
+    if submitted:
+        required_values = [email, password, password_confirm, name, address]
+        st.session_state.signup_error = ""
+        st.session_state.signup_success = ""
+
+        if any(not str(value).strip() for value in required_values):
+            st.session_state.signup_error = "필수 정보를 모두 입력해주세요."
+        elif not is_valid_email(email):
+            st.session_state.signup_error = "올바른 이메일 형식을 입력해주세요."
+        elif password != password_confirm:
+            st.session_state.signup_error = "비밀번호가 일치하지 않습니다."
+        elif not (agree_privacy and agree_terms):
+            st.session_state.signup_error = "필수 약관에 동의해주세요."
+        else:
+            registered_user = register_user_mock(email, password, name, address, marketing_opt_in)
+            st.session_state.signup_prefill_email = registered_user["email"]
+            st.session_state.signup_success = "회원가입이 완료되었습니다. 로그인해주세요."
+
+    if st.session_state.signup_error:
+        st.markdown(
+            f'<div class="signup-error">{safe_html(st.session_state.signup_error)}</div>',
+            unsafe_allow_html=True,
+        )
+    if st.session_state.signup_success:
+        st.markdown(
+            f'<div class="signup-success">{safe_html(st.session_state.signup_success)}</div>',
+            unsafe_allow_html=True,
+        )
+
+    if st.button("닫기", key="close_signup_dialog", use_container_width=True):
+        close_signup_dialog()
+        st.rerun()
+
+
+def render_signup_dialog() -> None:
+    if not st.session_state.open_signup_dialog:
+        return
+
+    if hasattr(st, "dialog"):
+        @st.dialog("회원가입", on_dismiss=close_signup_dialog)
+        def signup_dialog() -> None:
+            render_signup_dialog_body()
+
+        signup_dialog()
+    else:
+        with st.expander("회원가입", expanded=True):
+            render_signup_dialog_body()
+
+
 def render_login_page() -> None:
+    pending_email = str(st.session_state.get("signup_prefill_email", "")).strip()
+    if pending_email:
+        st.session_state.login_email = pending_email
+        st.session_state.signup_prefill_email = ""
+
     with st.container(key="login_card"):
         st.markdown(
             f"""
@@ -1769,6 +1952,10 @@ def render_login_page() -> None:
                     st.session_state.isLoggedIn = True
                     st.session_state.currentUser = user
                     st.session_state.login_error = ""
+                    if user.get("role") == "user":
+                        st.session_state.name = user.get("name", st.session_state.get("name", ""))
+                        st.session_state.email = user.get("email", st.session_state.get("email", ""))
+                        st.session_state.address = user.get("address", st.session_state.get("address", ""))
                     reset_chat_state()
                     st.rerun()
 
@@ -1777,6 +1964,11 @@ def render_login_page() -> None:
                 f'<div class="login-error">{safe_html(st.session_state.login_error)}</div>',
                 unsafe_allow_html=True,
             )
+
+        st.markdown('<div class="signup-prompt">처음이신가요?</div>', unsafe_allow_html=True)
+        if st.button("회원가입 하기", key="open_signup_button", use_container_width=True):
+            open_signup_dialog()
+            st.rerun()
 
         st.markdown(
             f"""
@@ -1788,6 +1980,8 @@ def render_login_page() -> None:
             """,
             unsafe_allow_html=True,
         )
+
+    render_signup_dialog()
 
 
 def render_permission_notice() -> None:
